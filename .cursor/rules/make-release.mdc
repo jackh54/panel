@@ -1,0 +1,88 @@
+---
+description: When the user says "make a release", tag and publish a fork panel.tar.gz release
+alwaysApply: true
+---
+
+# Make a Release (fork panel)
+
+When the user says **make a release** (or equivalent), create a GitHub Release for this fork so production can upgrade via tarball — not `pterodactyl/panel`.
+
+## Context
+
+- Fork: `https://github.com/jackh54/panel`
+- Upstream: `https://github.com/pterodactyl/panel`
+- Release workflow: `.github/workflows/release.yaml` (runs on `v*` tags, builds assets, uploads `panel.tar.gz`)
+- Do **not** use official: `https://github.com/pterodactyl/panel/releases/latest/download/panel.tar.gz`
+
+## Steps
+
+1. Confirm working tree is clean enough to tag (warn if dirty; do not commit unless asked).
+2. Choose next tag: `vX.Y.Z` or fork-style `vX.Y.Z-jack.N`. Prefer bumping from latest existing `v*` tag on `origin`.
+3. Ensure branch is pushed to `origin`, then create and push the tag:
+   ```bash
+   git tag <tag>
+   git push origin <tag>
+   ```
+4. Wait for the **Release** GitHub Action to finish and confirm `panel.tar.gz` is on the release.
+5. Give the user copy-paste **update commands** (one block each), adapted from https://pterodactyl.io/panel/1.0/updating.html, using this fork’s URL.
+
+## Update commands to give the user
+
+Replace `<tag>` with the tag just published (or use `latest` once the release is published).
+
+```bash
+cd /var/www/pterodactyl
+```
+
+```bash
+php artisan down
+```
+
+```bash
+curl -L https://github.com/jackh54/panel/releases/latest/download/panel.tar.gz | tar -xzv
+```
+
+(Or pin: `https://github.com/jackh54/panel/releases/download/<tag>/panel.tar.gz`)
+
+```bash
+chmod -R 755 storage/* bootstrap/cache
+```
+
+```bash
+composer install --no-dev --optimize-autoloader
+```
+
+```bash
+php artisan view:clear
+```
+
+```bash
+php artisan config:clear
+```
+
+```bash
+php artisan migrate --seed --force
+```
+
+```bash
+# NGINX/Apache (not CentOS):
+chown -R www-data:www-data /var/www/pterodactyl/*
+# CentOS NGINX: chown -R nginx:nginx /var/www/pterodactyl/*
+# CentOS Apache: chown -R apache:apache /var/www/pterodactyl/*
+```
+
+```bash
+php artisan queue:restart
+```
+
+```bash
+php artisan up
+```
+
+Remind them to upgrade Wings if the Panel/Wings version matrix requires it.
+
+## Do not
+
+- Point upgrade curl at `pterodactyl/panel`
+- Force-push tags or skip hooks unless explicitly asked
+- Commit/push unrelated changes as part of release unless asked
