@@ -1,0 +1,31 @@
+<?php
+
+return [
+    /*
+    |--------------------------------------------------------------------------
+    | Frontend (browser) Sentry DSN
+    |--------------------------------------------------------------------------
+    |
+    | Used by the React client panel. Leave empty to disable browser reporting.
+    | This is injected at runtime via SiteConfiguration — no asset rebuild needed.
+    |
+    */
+    'frontend_dsn' => env('SENTRY_FRONTEND_DSN', env('SENTRY_DSN_FRONTEND')),
+
+    /*
+    |--------------------------------------------------------------------------
+    | Environment & release tags
+    |--------------------------------------------------------------------------
+    */
+    'environment' => env('SENTRY_ENVIRONMENT', env('APP_ENV', 'production')),
+    'release' => env('SENTRY_RELEASE'),
+
+    /*
+    |--------------------------------------------------------------------------
+    | Sample rates (frontend)
+    |--------------------------------------------------------------------------
+    */
+    'traces_sample_rate' => (float) env('SENTRY_TRACES_SAMPLE_RATE', 0.1),
+    'replays_session_sample_rate' => (float) env('SENTRY_REPLAYS_SESSION_SAMPLE_RATE', 0.0),
+    'replays_on_error_sample_rate' => (float) env('SENTRY_REPLAYS_ON_ERROR_SAMPLE_RATE', 1.0),
+];

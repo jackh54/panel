@@ -130,7 +130,7 @@ const Modal: React.FC<ModalProps> = ({
                         </Fade>
                     )}
                     <div
-                        css={tw`bg-neutral-800 p-3 sm:p-4 md:p-6 rounded shadow-md overflow-y-scroll transition-all duration-150`}
+                        css={tw`bg-neutral-800 p-3 sm:p-4 md:p-6 rounded-2xl border border-neutral-600/50 shadow-panel overflow-y-scroll transition-all duration-200`}
                     >
                         {children}
                     </div>

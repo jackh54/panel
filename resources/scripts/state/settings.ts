@@ -7,6 +7,14 @@ export interface SiteSettings {
         enabled: boolean;
         siteKey: string;
     };
+    sentry?: {
+        dsn?: string | null;
+        environment?: string;
+        release?: string | null;
+        tracesSampleRate?: number;
+        replaysSessionSampleRate?: number;
+        replaysOnErrorSampleRate?: number;
+    };
 }
 
 export interface SettingsStore {

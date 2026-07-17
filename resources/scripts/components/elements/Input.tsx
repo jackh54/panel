@@ -40,8 +40,8 @@ const inputStyle = css<Props>`
     // Reset to normal styling.
     resize: none;
     ${tw`appearance-none outline-none w-full min-w-0`};
-    ${tw`p-3 border-2 rounded text-sm transition-all duration-150`};
-    ${tw`bg-neutral-600 border-neutral-500 hover:border-neutral-400 text-neutral-200 shadow-none focus:ring-0`};
+    ${tw`p-3 border rounded-lg text-sm transition-all duration-200`};
+    ${tw`bg-neutral-800 border-neutral-600 hover:border-neutral-500 text-neutral-100 shadow-none focus:ring-0`};
 
     & + .input-help {
         ${tw`mt-1 text-xs`};
@@ -54,8 +54,8 @@ const inputStyle = css<Props>`
     }
 
     &:not(:disabled):not(:read-only):focus {
-        ${tw`shadow-md border-primary-300 ring-2 ring-primary-400 ring-opacity-50`};
-        ${(props) => props.hasError && tw`border-red-300 ring-red-200`};
+        ${tw`shadow-none border-cyan-400 ring-2 ring-cyan-400 ring-opacity-30`};
+        ${(props) => props.hasError && tw`border-red-400 ring-red-400 ring-opacity-30`};
     }
 
     &:disabled {

@@ -13,17 +13,30 @@ export default createGlobalStyle`
         unicode-range: U+0000-00FF,U+0131,U+0152-0153,U+02BB-02BC,U+02C6,U+02DA,U+02DC,U+0304,U+0308,U+0329,U+2000-206F,U+20AC,U+2122,U+2191,U+2193,U+2212,U+2215,U+FEFF,U+FFFD;
     }
 
+    html {
+        color-scheme: dark;
+    }
+
     body {
-        ${tw`font-sans bg-neutral-800 text-neutral-200`};
-        letter-spacing: 0.015em;
+        ${tw`font-sans bg-neutral-800 text-neutral-200 antialiased`};
+        letter-spacing: 0.01em;
+        background-image:
+            radial-gradient(ellipse 120% 80% at 50% -30%, rgba(56, 189, 248, 0.08), transparent 55%),
+            radial-gradient(ellipse 80% 50% at 100% 0%, rgba(34, 211, 238, 0.04), transparent 40%);
+        background-attachment: fixed;
+        min-height: 100vh;
     }
 
     h1, h2, h3, h4, h5, h6 {
-        ${tw`font-medium tracking-normal font-header`};
+        ${tw`font-medium tracking-tight font-header text-neutral-100`};
     }
 
     p {
-        ${tw`text-neutral-200 leading-snug font-sans`};
+        ${tw`text-neutral-300 leading-relaxed font-sans`};
+    }
+
+    a {
+        transition: color 200ms cubic-bezier(0.22, 1, 0.36, 1);
     }
 
     form {
@@ -44,31 +57,49 @@ export default createGlobalStyle`
         -moz-appearance: textfield !important;
     }
 
+    ::selection {
+        background: rgba(56, 189, 248, 0.35);
+        color: #f8fafc;
+    }
+
+    /* Smooth page transitions used by CSSTransition */
+    .fade-enter {
+        opacity: 0;
+    }
+    .fade-enter-active {
+        opacity: 1;
+        transition: opacity 200ms cubic-bezier(0.22, 1, 0.36, 1);
+    }
+    .fade-exit {
+        opacity: 1;
+    }
+    .fade-exit-active {
+        opacity: 0;
+        transition: opacity 150ms cubic-bezier(0.22, 1, 0.36, 1);
+    }
+
     /* Scroll Bar Style */
     ::-webkit-scrollbar {
-        background: none;
-        width: 16px;
-        height: 16px;
+        background: transparent;
+        width: 12px;
+        height: 12px;
     }
 
     ::-webkit-scrollbar-thumb {
-        border: solid 0 rgb(0 0 0 / 0%);
-        border-right-width: 4px;
-        border-left-width: 4px;
-        -webkit-border-radius: 9px 4px;
-        -webkit-box-shadow: inset 0 0 0 1px hsl(211, 10%, 53%), inset 0 0 0 4px hsl(209deg 18% 30%);
+        background: hsl(222, 12%, 28%);
+        border: 3px solid transparent;
+        background-clip: padding-box;
+        border-radius: 999px;
+    }
+
+    ::-webkit-scrollbar-thumb:hover {
+        background: hsl(220, 11%, 40%);
+        border: 3px solid transparent;
+        background-clip: padding-box;
     }
 
     ::-webkit-scrollbar-track-piece {
         margin: 4px 0;
-    }
-
-    ::-webkit-scrollbar-thumb:horizontal {
-        border-right-width: 0;
-        border-left-width: 0;
-        border-top-width: 4px;
-        border-bottom-width: 4px;
-        -webkit-border-radius: 4px 9px;
     }
 
     ::-webkit-scrollbar-corner {

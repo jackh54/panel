@@ -12,11 +12,11 @@
 }
 
 .text_input {
-    @apply transition-shadow duration-75;
-    @apply w-full bg-neutral-800 rounded px-4 py-2 outline-none border-0;
+    @apply transition-shadow duration-200;
+    @apply w-full bg-neutral-800 rounded-lg px-4 py-2 outline-none border border-neutral-600;
 
     &:focus, &:active {
-        @apply ring-4 ring-blue-300 ring-opacity-75;
+        @apply ring-2 ring-cyan-400 ring-opacity-30 border-cyan-400;
     }
 
     &.loose {

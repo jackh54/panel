@@ -7,8 +7,7 @@ import tw from 'twin.macro';
 
 const BarFill = styled.div`
     ${tw`h-full bg-cyan-400`};
-    transition: 250ms ease-in-out;
-    box-shadow: 0 -2px 10px 2px hsl(178, 78%, 57%);
+    transition: 250ms cubic-bezier(0.22, 1, 0.36, 1);
 `;
 
 type Timer = ReturnType<typeof setTimeout>;

@@ -2,9 +2,12 @@ import React from 'react';
 import ReactDOM from 'react-dom';
 import App from '@/components/App';
 import { setConfig } from 'react-hot-loader';
+import initSentry from '@/lib/sentry';
 
 // Enable language support.
 import './i18n';
+
+initSentry();
 
 // Prevents page reloads while making component changes which
 // also avoids triggering constant loading indicators all over

@@ -3,8 +3,8 @@
 }
 
 .panel {
-    @apply relative bg-gray-600 rounded max-w-xl w-full mx-auto shadow-lg text-left;
-    @apply ring-4 ring-gray-800 ring-opacity-80;
+    @apply relative bg-gray-700 rounded-2xl max-w-xl w-full mx-auto shadow-panel text-left;
+    @apply border border-gray-600/60 ring-4 ring-gray-900 ring-opacity-60;
 }
 
 .title {
