@@ -18,6 +18,7 @@ use Pterodactyl\Services\Users\UserUpdateService;
 use Pterodactyl\Traits\Helpers\AvailableLanguages;
 use Pterodactyl\Services\Users\UserCreationService;
 use Pterodactyl\Services\Users\UserDeletionService;
+use Pterodactyl\Services\Users\UserSuspensionService;
 use Pterodactyl\Http\Requests\Admin\UserFormRequest;
 use Pterodactyl\Http\Requests\Admin\NewUserFormRequest;
 use Pterodactyl\Contracts\Repository\UserRepositoryInterface;
@@ -35,6 +36,7 @@ class UserController extends Controller
         protected UserDeletionService $deletionService,
         protected Translator $translator,
         protected UserUpdateService $updateService,
+        protected UserSuspensionService $suspensionService,
         protected UserRepositoryInterface $repository,
         protected ViewFactory $view,
     ) {
@@ -126,6 +128,37 @@ class UserController extends Controller
             ->handle($user, $request->normalize());
 
         $this->alert->success(trans('admin/user.notices.account_updated'))->flash();
+
+        return redirect()->route('admin.users.view', $user->id);
+    }
+
+    /**
+     * Suspend a user account and all servers they own.
+     *
+     * @throws \Throwable
+     * @throws DisplayException
+     */
+    public function suspend(Request $request, User $user): RedirectResponse
+    {
+        if ($request->user()->is($user)) {
+            throw new DisplayException('You cannot suspend your own account.');
+        }
+
+        $this->suspensionService->suspend($user);
+        $this->alert->success('Account has been suspended. All owned servers were suspended and active sessions were revoked.')->flash();
+
+        return redirect()->route('admin.users.view', $user->id);
+    }
+
+    /**
+     * Unsuspend a user account and restore servers suspended with the account.
+     *
+     * @throws \Throwable
+     */
+    public function unsuspend(User $user): RedirectResponse
+    {
+        $this->suspensionService->unsuspend($user);
+        $this->alert->success('Account has been unsuspended. Servers suspended with the account were restored.')->flash();
 
         return redirect()->route('admin.users.view', $user->id);
     }

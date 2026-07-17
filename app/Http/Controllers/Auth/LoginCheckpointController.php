@@ -12,6 +12,7 @@ use Illuminate\Support\Facades\Event;
 use Illuminate\Contracts\Encryption\Encrypter;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Pterodactyl\Events\Auth\ProvidedAuthenticationToken;
+use Pterodactyl\Exceptions\DisplayException;
 use Pterodactyl\Http\Requests\Auth\LoginCheckpointRequest;
 use Illuminate\Contracts\Validation\Factory as ValidationFactory;
 
@@ -60,6 +61,11 @@ class LoginCheckpointController extends AbstractLoginController
             $user = User::query()->findOrFail($details['user_id']);
         } catch (ModelNotFoundException) {
             $this->sendFailedLoginResponse($request, null, self::TOKEN_EXPIRED_MESSAGE);
+        }
+
+        if ($user->suspended) {
+            $request->session()->remove('auth_confirmation_token');
+            throw new DisplayException(trans('auth.account_suspended'));
         }
 
         // Recovery tokens go through a slightly different pathway for usage.

@@ -102,6 +102,33 @@
             </div>
         </div>
     </form>
+    <div class="col-md-6">
+        <div class="box {{ $user->suspended ? 'box-danger' : 'box-warning' }}">
+            <div class="box-header with-border">
+                <h3 class="box-title">Account Suspension</h3>
+            </div>
+            <div class="box-body">
+                @if($user->suspended)
+                    <p class="no-margin">This account is currently <strong>suspended</strong>. The user cannot sign in, and servers owned by them that were suspended with this action can be restored on unsuspend.</p>
+                @else
+                    <p class="no-margin">Suspending an account will suspend all servers they own, revoke API keys, force logout of active sessions, and block future logins.</p>
+                @endif
+            </div>
+            <div class="box-footer">
+                @if($user->suspended)
+                    <form action="{{ route('admin.users.unsuspend', $user->id) }}" method="POST">
+                        {!! csrf_field() !!}
+                        <input type="submit" class="btn btn-sm btn-success" value="Unsuspend Account" />
+                    </form>
+                @else
+                    <form action="{{ route('admin.users.suspend', $user->id) }}" method="POST">
+                        {!! csrf_field() !!}
+                        <input type="submit" class="btn btn-sm btn-warning" value="Suspend Account" onclick="return confirm('Suspend this account and all owned servers?')" />
+                    </form>
+                @endif
+            </div>
+        </div>
+    </div>
     <div class="col-xs-12">
         <div class="box box-danger">
             <div class="box-header with-border">

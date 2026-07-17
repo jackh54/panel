@@ -8,11 +8,13 @@ use Spatie\QueryBuilder\QueryBuilder;
 use Pterodactyl\Services\Users\UserUpdateService;
 use Pterodactyl\Services\Users\UserCreationService;
 use Pterodactyl\Services\Users\UserDeletionService;
+use Pterodactyl\Services\Users\UserSuspensionService;
 use Pterodactyl\Transformers\Api\Application\UserTransformer;
 use Pterodactyl\Http\Requests\Api\Application\Users\GetUsersRequest;
 use Pterodactyl\Http\Requests\Api\Application\Users\StoreUserRequest;
 use Pterodactyl\Http\Requests\Api\Application\Users\DeleteUserRequest;
 use Pterodactyl\Http\Requests\Api\Application\Users\UpdateUserRequest;
+use Pterodactyl\Http\Requests\Api\Application\Users\SuspendUserRequest;
 use Pterodactyl\Http\Controllers\Api\Application\ApplicationApiController;
 
 class UserController extends ApplicationApiController
@@ -24,6 +26,7 @@ class UserController extends ApplicationApiController
         private UserCreationService $creationService,
         private UserDeletionService $deletionService,
         private UserUpdateService $updateService,
+        private UserSuspensionService $suspensionService,
     ) {
         parent::__construct();
     }
@@ -108,6 +111,30 @@ class UserController extends ApplicationApiController
     public function delete(DeleteUserRequest $request, User $user): JsonResponse
     {
         $this->deletionService->handle($user);
+
+        return new JsonResponse([], JsonResponse::HTTP_NO_CONTENT);
+    }
+
+    /**
+     * Suspend a user account and cascade-suspend owned servers.
+     *
+     * @throws \Throwable
+     */
+    public function suspend(SuspendUserRequest $request, User $user): JsonResponse
+    {
+        $this->suspensionService->suspend($user);
+
+        return new JsonResponse([], JsonResponse::HTTP_NO_CONTENT);
+    }
+
+    /**
+     * Unsuspend a user account and restore servers suspended with the account.
+     *
+     * @throws \Throwable
+     */
+    public function unsuspend(SuspendUserRequest $request, User $user): JsonResponse
+    {
+        $this->suspensionService->unsuspend($user);
 
         return new JsonResponse([], JsonResponse::HTTP_NO_CONTENT);
     }

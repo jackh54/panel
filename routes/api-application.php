@@ -19,6 +19,8 @@ Route::group(['prefix' => '/users'], function () {
 
     Route::post('/', [Application\Users\UserController::class, 'store']);
     Route::patch('/{user:id}', [Application\Users\UserController::class, 'update']);
+    Route::post('/{user:id}/suspend', [Application\Users\UserController::class, 'suspend']);
+    Route::post('/{user:id}/unsuspend', [Application\Users\UserController::class, 'unsuspend']);
 
     Route::delete('/{user:id}', [Application\Users\UserController::class, 'delete']);
 });

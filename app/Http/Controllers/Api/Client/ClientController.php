@@ -61,6 +61,15 @@ class ClientController extends ClientApiController
             $builder = $builder->whereIn('servers.id', $user->accessibleServers()->pluck('id')->all());
         }
 
+        $builder->leftJoin('user_server_orders', function ($join) use ($user) {
+            $join->on('user_server_orders.server_id', '=', 'servers.id')
+                ->where('user_server_orders.user_id', '=', $user->id);
+        })
+            ->select('servers.*')
+            ->orderByRaw('user_server_orders.sort_order IS NULL')
+            ->orderBy('user_server_orders.sort_order')
+            ->orderBy('servers.id');
+
         $servers = $builder->paginate(min($request->query('per_page', 50), 100))->appends($request->query());
 
         return $this->fractal->transformWith($transformer)->collection($servers)->toArray();

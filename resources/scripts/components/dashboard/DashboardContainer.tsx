@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { Server } from '@/api/server/getServer';
 import getServers from '@/api/getServers';
+import updateServerOrder from '@/api/updateServerOrder';
 import ServerRow from '@/components/dashboard/ServerRow';
 import Spinner from '@/components/elements/Spinner';
 import PageContentBlock from '@/components/elements/PageContentBlock';
@@ -23,8 +24,11 @@ export default () => {
     const uuid = useStoreState((state) => state.user.data!.uuid);
     const rootAdmin = useStoreState((state) => state.user.data!.rootAdmin);
     const [showOnlyAdmin, setShowOnlyAdmin] = usePersistedState(`${uuid}:show_all_servers`, false);
+    const [orderedServers, setOrderedServers] = useState<Server[]>([]);
+    const [draggingUuid, setDraggingUuid] = useState<string | null>(null);
+    const [savingOrder, setSavingOrder] = useState(false);
 
-    const { data: servers, error } = useSWR<PaginatedResult<Server>>(
+    const { data: servers, error, mutate } = useSWR<PaginatedResult<Server>>(
         ['/api/client/servers', showOnlyAdmin && rootAdmin, page],
         () => getServers({ page, type: showOnlyAdmin && rootAdmin ? 'admin' : undefined })
     );
@@ -35,10 +39,11 @@ export default () => {
 
     useEffect(() => {
         if (!servers) return;
+        setOrderedServers(servers.items);
         if (servers.pagination.currentPage > 1 && !servers.items.length) {
             setPage(1);
         }
-    }, [servers?.pagination.currentPage]);
+    }, [servers]);
 
     useEffect(() => {
         // Don't use react-router to handle changing this part of the URL, otherwise it
@@ -51,6 +56,41 @@ export default () => {
         if (error) clearAndAddHttpError({ key: 'dashboard', error });
         if (!error) clearFlashes('dashboard');
     }, [error]);
+
+    const persistOrder = (next: Server[]) => {
+        setOrderedServers(next);
+        setSavingOrder(true);
+        const offset = servers ? (servers.pagination.currentPage - 1) * servers.pagination.perPage : 0;
+        updateServerOrder(
+            next.map((server) => server.uuid),
+            offset
+        )
+            .then(() => mutate())
+            .catch((err) => clearAndAddHttpError({ key: 'dashboard', error: err }))
+            .finally(() => setSavingOrder(false));
+    };
+
+    const onDrop = (targetUuid: string) => {
+        if (!draggingUuid || draggingUuid === targetUuid || savingOrder) {
+            setDraggingUuid(null);
+            return;
+        }
+
+        const fromIndex = orderedServers.findIndex((server) => server.uuid === draggingUuid);
+        const toIndex = orderedServers.findIndex((server) => server.uuid === targetUuid);
+        if (fromIndex < 0 || toIndex < 0) {
+            setDraggingUuid(null);
+            return;
+        }
+
+        const next = [...orderedServers];
+        const [moved] = next.splice(fromIndex, 1);
+        next.splice(toIndex, 0, moved);
+        setDraggingUuid(null);
+        persistOrder(next);
+    };
+
+    const canReorder = !showOnlyAdmin && orderedServers.length > 1;
 
     return (
         <PageContentBlock title={'Dashboard'} showFlashKey={'dashboard'}>
@@ -66,14 +106,39 @@ export default () => {
                     />
                 </div>
             )}
+            {canReorder && (
+                <p css={tw`mb-2 text-xs text-neutral-400`}>
+                    Drag servers using the handle to reorder your list
+                    {savingOrder ? ' — saving…' : '.'}
+                </p>
+            )}
             {!servers ? (
                 <Spinner centered size={'large'} />
             ) : (
                 <Pagination data={servers} onPageSelect={setPage}>
-                    {({ items }) =>
-                        items.length > 0 ? (
-                            items.map((server, index) => (
-                                <ServerRow key={server.uuid} server={server} css={index > 0 ? tw`mt-2` : undefined} />
+                    {() =>
+                        orderedServers.length > 0 ? (
+                            orderedServers.map((server, index) => (
+                                <div
+                                    key={server.uuid}
+                                    css={index > 0 ? tw`mt-2` : undefined}
+                                    onDragOver={(event) => {
+                                        if (!canReorder) return;
+                                        event.preventDefault();
+                                    }}
+                                    onDrop={() => {
+                                        if (!canReorder) return;
+                                        onDrop(server.uuid);
+                                    }}
+                                >
+                                    <ServerRow
+                                        server={server}
+                                        draggable={canReorder}
+                                        onDragStart={() => setDraggingUuid(server.uuid)}
+                                        onDragEnd={() => setDraggingUuid(null)}
+                                        isDragging={draggingUuid === server.uuid}
+                                    />
+                                </div>
                             ))
                         ) : (
                             <p css={tw`text-center text-sm text-neutral-400`}>

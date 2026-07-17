@@ -4,6 +4,8 @@ namespace Pterodactyl\Services\Servers;
 
 use Webmozart\Assert\Assert;
 use Pterodactyl\Models\Server;
+use Pterodactyl\Notifications\ServerSuspended;
+use Pterodactyl\Notifications\ServerUnsuspended;
 use Pterodactyl\Repositories\Wings\DaemonServerRepository;
 use Symfony\Component\HttpKernel\Exception\ConflictHttpException;
 
@@ -56,6 +58,13 @@ class SuspensionService
                 'status' => $isSuspending ? null : Server::STATUS_SUSPENDED,
             ]);
             throw $exception;
+        }
+
+        $owner = $server->user;
+        if ($isSuspending) {
+            $owner->notify(new ServerSuspended($server->refresh()));
+        } else {
+            $owner->notify(new ServerUnsuspended($server->refresh()));
         }
     }
 }
