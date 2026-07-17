@@ -18,7 +18,7 @@
     <div class="row">
         <div class="col-xs-12">
             <div class="alert alert-info">
-                Use placeholders like <code>{{ '{{user_name}}' }}</code> in any field. Leave button text or URL blank to hide the button.
+                Use placeholders like <code>@{{user_name}}</code> in any field. Leave button text or URL blank to hide the button.
                 Disable a template to stop sending that email entirely.
             </div>
         </div>
@@ -45,9 +45,9 @@
                             <p class="text-muted" style="margin-bottom: 15px;">
                                 Available placeholders:
                                 @foreach(($template['placeholders'] ?? []) as $placeholder)
-                                    <code>{{ '{{' . $placeholder . '}}' }}</code>@if(!$loop->last), @endif
+                                    <code>{{ '{' . '{' . $placeholder . '}' . '}' }}</code>@if(!$loop->last), @endif
                                 @endforeach
-                                , <code>{{ '{{app_name}}' }}</code>, <code>{{ '{{brand_name}}' }}</code>
+                                , <code>@{{app_name}}</code>, <code>@{{brand_name}}</code>
                             </p>
 
                             <div class="row">
@@ -93,7 +93,7 @@
                                 </div>
                                 <div class="form-group col-md-8">
                                     <label class="control-label" for="action_url_{{ $type }}">Button URL</label>
-                                    <input type="text" name="action_url" id="action_url_{{ $type }}" class="form-control" value="{{ old('action_url', $template['action_url'] ?? '') }}" placeholder="{{ '{{action_url}}' }} or https://...">
+                                    <input type="text" name="action_url" id="action_url_{{ $type }}" class="form-control" value="{{ old('action_url', $template['action_url'] ?? '') }}" placeholder="@{{action_url}} or https://...">
                                 </div>
                             </div>
                         </div>
