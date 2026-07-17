@@ -35,7 +35,7 @@ return [
             'greeting' => 'Hello {{user_name}}!',
             'lines' => [
                 'Your account has been suspended. You will not be able to sign in until an administrator unsuspends your account.',
-                'Any servers you own have also been suspended.',
+                'Any servers you own have also been suspended and are no longer accessible.',
             ],
             'action_text' => '',
             'action_url' => '',

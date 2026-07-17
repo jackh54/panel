@@ -6,6 +6,7 @@ use Illuminate\Support\Str;
 use Pterodactyl\Models\User;
 use Pterodactyl\Models\Server;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 use Pterodactyl\Events\User\PasswordChanged;
 use Pterodactyl\Notifications\AccountSuspended;
 use Pterodactyl\Notifications\AccountUnsuspended;
@@ -28,6 +29,8 @@ class UserSuspensionService
             return;
         }
 
+        $servers = $user->servers()->get()->filter(fn (Server $server) => !$server->isSuspended())->values();
+
         DB::transaction(function () use ($user) {
             $user->forceFill([
                 'suspended' => true,
@@ -36,19 +39,25 @@ class UserSuspensionService
 
             $user->tokens()->delete();
             $user->apiKeys()->delete();
-
-            $user->servers()->get()->each(function (Server $server) {
-                if ($server->isSuspended()) {
-                    return;
-                }
-
-                $this->suspensionService->toggle($server, SuspensionService::ACTION_SUSPEND);
-                $server->forceFill(['suspended_for_account' => true])->save();
-            });
         });
 
+        // Suspend servers outside the account transaction so a Wings failure on one
+        // server does not roll back the account suspension itself.
+        foreach ($servers as $server) {
+            try {
+                $this->suspensionService->toggle($server, SuspensionService::ACTION_SUSPEND, false);
+                $server->forceFill(['suspended_for_account' => true])->save();
+            } catch (\Throwable $exception) {
+                Log::warning('Failed to suspend server during account suspension.', [
+                    'user_id' => $user->id,
+                    'server_id' => $server->id,
+                    'exception' => $exception->getMessage(),
+                ]);
+            }
+        }
+
         PasswordChanged::dispatch($user->refresh());
-        $user->notify(new AccountSuspended($user));
+        $this->notifySafely($user, new AccountSuspended($user), 'account_suspended');
     }
 
     /**
@@ -62,18 +71,40 @@ class UserSuspensionService
             return;
         }
 
+        $servers = $user->servers()
+            ->where('suspended_for_account', true)
+            ->get();
+
         DB::transaction(function () use ($user) {
             $user->forceFill(['suspended' => false])->save();
-
-            $user->servers()
-                ->where('suspended_for_account', true)
-                ->get()
-                ->each(function (Server $server) {
-                    $this->suspensionService->toggle($server, SuspensionService::ACTION_UNSUSPEND);
-                    $server->forceFill(['suspended_for_account' => false])->save();
-                });
         });
 
-        $user->notify(new AccountUnsuspended($user->refresh()));
+        foreach ($servers as $server) {
+            try {
+                $this->suspensionService->toggle($server, SuspensionService::ACTION_UNSUSPEND, false);
+                $server->forceFill(['suspended_for_account' => false])->save();
+            } catch (\Throwable $exception) {
+                Log::warning('Failed to unsuspend server during account unsuspension.', [
+                    'user_id' => $user->id,
+                    'server_id' => $server->id,
+                    'exception' => $exception->getMessage(),
+                ]);
+            }
+        }
+
+        $this->notifySafely($user->refresh(), new AccountUnsuspended($user), 'account_unsuspended');
+    }
+
+    private function notifySafely(User $user, object $notification, string $type): void
+    {
+        try {
+            $user->notify($notification);
+        } catch (\Throwable $exception) {
+            Log::warning('Failed to send account suspension notification.', [
+                'user_id' => $user->id,
+                'type' => $type,
+                'exception' => $exception->getMessage(),
+            ]);
+        }
     }
 }
