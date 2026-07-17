@@ -1,4 +1,5 @@
 import React, { forwardRef, useEffect, useImperativeHandle, useRef } from 'react';
+import tw from 'twin.macro';
 
 export type TurnstileHandle = {
     execute: () => Promise<string>;
@@ -48,6 +49,9 @@ function loadTurnstileScript(): Promise<TurnstileApi> {
         };
 
         if (existing) {
+            if (window.turnstile) {
+                resolve(window.turnstile);
+            }
             return;
         }
 
@@ -64,10 +68,17 @@ function loadTurnstileScript(): Promise<TurnstileApi> {
 const TurnstileWidget = forwardRef<TurnstileHandle, Props>(({ siteKey, onVerify, onExpire, onError }, ref) => {
     const containerRef = useRef<HTMLDivElement>(null);
     const widgetIdRef = useRef<string | null>(null);
+    const onVerifyRef = useRef(onVerify);
+    const onExpireRef = useRef(onExpire);
+    const onErrorRef = useRef(onError);
     const pendingRef = useRef<{
         resolve: (token: string) => void;
         reject: (error: Error) => void;
     } | null>(null);
+
+    onVerifyRef.current = onVerify;
+    onExpireRef.current = onExpire;
+    onErrorRef.current = onError;
 
     useEffect(() => {
         let removed = false;
@@ -78,28 +89,34 @@ const TurnstileWidget = forwardRef<TurnstileHandle, Props>(({ siteKey, onVerify,
                     return;
                 }
 
+                // size must be normal | flexible | compact (not "invisible").
+                // Invisible is a Cloudflare dashboard widget mode, not a size option.
+                // execution/appearance keep the challenge deferred until submit.
                 widgetIdRef.current = api.render(containerRef.current, {
                     sitekey: siteKey,
-                    size: 'invisible',
+                    theme: 'dark',
+                    size: 'flexible',
+                    execution: 'execute',
+                    appearance: 'interaction-only',
                     callback: (token: string) => {
-                        onVerify(token);
+                        onVerifyRef.current(token);
                         pendingRef.current?.resolve(token);
                         pendingRef.current = null;
                     },
                     'expired-callback': () => {
-                        onExpire?.();
+                        onExpireRef.current?.();
                         pendingRef.current?.reject(new Error('Turnstile token expired.'));
                         pendingRef.current = null;
                     },
                     'error-callback': () => {
                         const error = new Error('Turnstile challenge failed.');
-                        onError?.(error);
+                        onErrorRef.current?.(error);
                         pendingRef.current?.reject(error);
                         pendingRef.current = null;
                     },
                 });
             })
-            .catch((error) => onError?.(error instanceof Error ? error : new Error(String(error))));
+            .catch((error) => onErrorRef.current?.(error instanceof Error ? error : new Error(String(error))));
 
         return () => {
             removed = true;
@@ -129,7 +146,7 @@ const TurnstileWidget = forwardRef<TurnstileHandle, Props>(({ siteKey, onVerify,
         },
     }));
 
-    return <div ref={containerRef} style={{ display: 'none' }} />;
+    return <div ref={containerRef} css={tw`mt-4 flex justify-center min-h-[0]`} />;
 });
 
 TurnstileWidget.displayName = 'TurnstileWidget';

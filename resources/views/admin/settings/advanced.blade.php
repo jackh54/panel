@@ -51,7 +51,7 @@
                         <div class="row">
                             <div class="col-xs-12">
                                 <div class="alert alert-info no-margin">
-                                    Create keys in the <a href="https://dash.cloudflare.com/?to=/:account/turnstile" target="_blank" rel="noreferrer">Cloudflare Turnstile dashboard</a>. Use a managed or invisible widget.
+                                    Create keys in the <a href="https://dash.cloudflare.com/?to=/:account/turnstile" target="_blank" rel="noreferrer">Cloudflare Turnstile dashboard</a>. Managed mode is recommended.
                                 </div>
                             </div>
                         </div>
