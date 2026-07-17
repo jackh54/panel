@@ -61,12 +61,14 @@ export default ({ match, location }: RouteComponentProps<{ token: string }>) => 
             })}
         >
             {({ isSubmitting }) => (
-                <LoginFormContainer title={'Reset Password'} css={tw`w-full flex`}>
+                <LoginFormContainer title={'Choose a new password'}>
                     <div>
-                        <label>Email</label>
+                        <label css={tw`block text-xs font-medium uppercase tracking-wider text-neutral-400 mb-1.5`}>
+                            Email
+                        </label>
                         <Input value={email} disabled />
                     </div>
-                    <div css={tw`mt-6`}>
+                    <div css={tw`mt-5`}>
                         <Field
                             label={'New Password'}
                             name={'password'}
@@ -74,7 +76,7 @@ export default ({ match, location }: RouteComponentProps<{ token: string }>) => 
                             description={'Passwords must be at least 8 characters in length.'}
                         />
                     </div>
-                    <div css={tw`mt-6`}>
+                    <div css={tw`mt-5`}>
                         <Field label={'Confirm New Password'} name={'passwordConfirmation'} type={'password'} />
                     </div>
                     <div css={tw`mt-6`}>
@@ -82,12 +84,12 @@ export default ({ match, location }: RouteComponentProps<{ token: string }>) => 
                             Reset Password
                         </Button>
                     </div>
-                    <div css={tw`mt-6 text-center`}>
+                    <div css={tw`mt-5 text-center`}>
                         <Link
                             to={'/auth/login'}
-                            css={tw`text-xs text-neutral-500 tracking-wide no-underline uppercase hover:text-neutral-300`}
+                            css={tw`text-xs text-neutral-400 tracking-wide no-underline hover:text-neutral-200`}
                         >
-                            Return to Login
+                            Return to login
                         </Link>
                     </div>
                 </LoginFormContainer>
