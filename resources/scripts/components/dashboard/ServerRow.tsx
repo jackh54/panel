@@ -108,7 +108,7 @@ export default ({ server, className, draggable, isDragging, onDragStart, onDragE
                     }}
                     onDragEnd={() => onDragEnd?.()}
                     title={'Drag to reorder'}
-                    css={tw`flex items-center px-3 mr-2 rounded cursor-grab active:cursor-grabbing bg-neutral-700 text-neutral-300 hover:text-neutral-100`}
+                    css={tw`flex items-center px-3 mr-2 rounded cursor-move bg-neutral-700 text-neutral-300 hover:text-neutral-100`}
                 >
                     <FontAwesomeIcon icon={faBars} />
                 </div>
