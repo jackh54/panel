@@ -8,7 +8,7 @@ import { object, string } from 'yup';
 import Field from '@/components/elements/Field';
 import tw from 'twin.macro';
 import Button from '@/components/elements/Button';
-import Reaptcha from 'reaptcha';
+import TurnstileWidget, { TurnstileHandle } from '@/components/elements/TurnstileWidget';
 import useFlash from '@/plugins/useFlash';
 
 interface Values {
@@ -17,11 +17,13 @@ interface Values {
 }
 
 const LoginContainer = ({ history }: RouteComponentProps) => {
-    const ref = useRef<Reaptcha>(null);
+    const ref = useRef<TurnstileHandle>(null);
     const [token, setToken] = useState('');
 
     const { clearFlashes, clearAndAddHttpError } = useFlash();
-    const { enabled: recaptchaEnabled, siteKey } = useStoreState((state) => state.settings.data!.recaptcha);
+    const captcha = useStoreState((state) => state.settings.data!.turnstile || state.settings.data!.recaptcha);
+    const captchaEnabled = captcha.enabled;
+    const siteKey = captcha.siteKey;
 
     useEffect(() => {
         clearFlashes();
@@ -30,12 +32,9 @@ const LoginContainer = ({ history }: RouteComponentProps) => {
     const onSubmit = (values: Values, { setSubmitting }: FormikHelpers<Values>) => {
         clearFlashes();
 
-        // If there is no token in the state yet, request the token and then abort this submit request
-        // since it will be re-submitted when the recaptcha data is returned by the component.
-        if (recaptchaEnabled && !token) {
+        if (captchaEnabled && !token) {
             ref.current!.execute().catch((error) => {
                 console.error(error);
-
                 setSubmitting(false);
                 clearAndAddHttpError({ error });
             });
@@ -43,7 +42,7 @@ const LoginContainer = ({ history }: RouteComponentProps) => {
             return;
         }
 
-        login({ ...values, recaptchaData: token })
+        login({ ...values, captchaData: token })
             .then((response) => {
                 if (response.complete) {
                     // @ts-expect-error this is valid
@@ -57,7 +56,7 @@ const LoginContainer = ({ history }: RouteComponentProps) => {
                 console.error(error);
 
                 setToken('');
-                if (ref.current) ref.current.reset();
+                ref.current?.reset();
 
                 setSubmitting(false);
                 clearAndAddHttpError({ error });
@@ -84,11 +83,10 @@ const LoginContainer = ({ history }: RouteComponentProps) => {
                             Login
                         </Button>
                     </div>
-                    {recaptchaEnabled && (
-                        <Reaptcha
+                    {captchaEnabled && (
+                        <TurnstileWidget
                             ref={ref}
-                            size={'invisible'}
-                            sitekey={siteKey || '_invalid_key'}
+                            siteKey={siteKey || '_invalid_key'}
                             onVerify={(response) => {
                                 setToken(response);
                                 submitForm();
@@ -96,6 +94,11 @@ const LoginContainer = ({ history }: RouteComponentProps) => {
                             onExpire={() => {
                                 setSubmitting(false);
                                 setToken('');
+                            }}
+                            onError={(error) => {
+                                setSubmitting(false);
+                                setToken('');
+                                if (error) clearAndAddHttpError({ error });
                             }}
                         />
                     )}

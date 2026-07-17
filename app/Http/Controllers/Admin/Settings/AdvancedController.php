@@ -7,39 +7,21 @@ use Illuminate\Http\RedirectResponse;
 use Prologue\Alerts\AlertsMessageBag;
 use Illuminate\Contracts\Console\Kernel;
 use Pterodactyl\Http\Controllers\Controller;
-use Illuminate\Contracts\Config\Repository as ConfigRepository;
 use Pterodactyl\Contracts\Repository\SettingsRepositoryInterface;
 use Pterodactyl\Http\Requests\Admin\Settings\AdvancedSettingsFormRequest;
 
 class AdvancedController extends Controller
 {
-    /**
-     * AdvancedController constructor.
-     */
     public function __construct(
         private AlertsMessageBag $alert,
-        private ConfigRepository $config,
         private Kernel $kernel,
         private SettingsRepositoryInterface $settings,
     ) {
     }
 
-    /**
-     * Render advanced Panel settings UI.
-     */
     public function index(): View
     {
-        $showRecaptchaWarning = false;
-        if (
-            $this->config->get('recaptcha._shipped_secret_key') === $this->config->get('recaptcha.secret_key')
-            || $this->config->get('recaptcha._shipped_website_key') === $this->config->get('recaptcha.website_key')
-        ) {
-            $showRecaptchaWarning = true;
-        }
-
-        return view('admin.settings.advanced', [
-            'showRecaptchaWarning' => $showRecaptchaWarning,
-        ]);
+        return view('admin.settings.advanced');
     }
 
     /**
@@ -50,6 +32,11 @@ class AdvancedController extends Controller
     {
         foreach ($request->normalize() as $key => $value) {
             $this->settings->set('settings::' . $key, $value);
+        }
+
+        // Keep website_key alias in sync for any leftover readers.
+        if ($request->filled('turnstile:site_key')) {
+            $this->settings->set('settings::turnstile:website_key', $request->input('turnstile:site_key'));
         }
 
         $this->kernel->call('queue:restart');

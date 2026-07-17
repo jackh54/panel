@@ -7,6 +7,10 @@ export interface SiteSettings {
         enabled: boolean;
         siteKey: string;
     };
+    turnstile?: {
+        enabled: boolean;
+        siteKey: string;
+    };
     branding?: {
         logo?: string;
         company?: string;

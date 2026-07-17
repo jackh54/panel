@@ -23,9 +23,13 @@ class AssetComposer
         $view->with('siteConfiguration', [
             'name' => config('brand.name') ?? config('app.name') ?? 'PandaScript',
             'locale' => config('app.locale') ?? 'en',
+            'turnstile' => [
+                'enabled' => (bool) config('turnstile.enabled', false),
+                'siteKey' => config('turnstile.site_key') ?: config('turnstile.website_key') ?: '',
+            ],
             'recaptcha' => [
-                'enabled' => config('recaptcha.enabled', false),
-                'siteKey' => config('recaptcha.website_key') ?? '',
+                'enabled' => (bool) config('turnstile.enabled', false),
+                'siteKey' => config('turnstile.site_key') ?: config('turnstile.website_key') ?: '',
             ],
             'branding' => [
                 'logo' => config('brand.logo_path') ?: '/branding/logo.png',

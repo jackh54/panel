@@ -11,6 +11,7 @@ use Illuminate\Notifications\Messages\MailMessage;
 class AccountSuspended extends Notification implements ShouldQueue
 {
     use Queueable;
+    use UsesNotificationTemplate;
 
     public bool $afterCommit = true;
 
@@ -20,16 +21,13 @@ class AccountSuspended extends Notification implements ShouldQueue
 
     public function via(): array
     {
-        return ['mail'];
+        return $this->notificationChannels('account_suspended');
     }
 
     public function toMail(): MailMessage
     {
-        return (new MailMessage())
-            ->error()
-            ->subject('Account Suspended')
-            ->greeting('Hello ' . $this->user->name . '!')
-            ->line('Your account has been suspended. You will not be able to sign in until an administrator unsuspends your account.')
-            ->line('Any servers you own have also been suspended.');
+        return $this->templateMail('account_suspended', [
+            'user_name' => $this->user->name,
+        ]);
     }
 }

@@ -10,34 +10,26 @@ use Illuminate\Notifications\Messages\MailMessage;
 class AddedToServer extends Notification implements ShouldQueue
 {
     use Queueable;
+    use UsesNotificationTemplate;
 
     public object $server;
 
-    /**
-     * Create a new notification instance.
-     */
     public function __construct(array $server)
     {
         $this->server = (object) $server;
     }
 
-    /**
-     * Get the notification's delivery channels.
-     */
     public function via(): array
     {
-        return ['mail'];
+        return $this->notificationChannels('added_to_server');
     }
 
-    /**
-     * Get the mail representation of the notification.
-     */
     public function toMail(): MailMessage
     {
-        return (new MailMessage())
-            ->greeting('Hello ' . $this->server->user . '!')
-            ->line('You have been added as a subuser for the following server, allowing you certain control over the server.')
-            ->line('Server Name: ' . $this->server->name)
-            ->action('Visit Server', url('/server/' . $this->server->uuidShort));
+        return $this->templateMail('added_to_server', [
+            'user_name' => $this->server->user,
+            'server_name' => $this->server->name,
+            'action_url' => url('/server/' . $this->server->uuidShort),
+        ]);
     }
 }

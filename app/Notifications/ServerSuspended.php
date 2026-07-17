@@ -11,6 +11,7 @@ use Illuminate\Notifications\Messages\MailMessage;
 class ServerSuspended extends Notification implements ShouldQueue
 {
     use Queueable;
+    use UsesNotificationTemplate;
 
     public bool $afterCommit = true;
 
@@ -20,17 +21,15 @@ class ServerSuspended extends Notification implements ShouldQueue
 
     public function via(): array
     {
-        return ['mail'];
+        return $this->notificationChannels('server_suspended');
     }
 
     public function toMail(): MailMessage
     {
-        return (new MailMessage())
-            ->error()
-            ->subject('Server Suspended: ' . $this->server->name)
-            ->greeting('Hello ' . $this->server->user->name . '!')
-            ->line('Your server has been suspended and is no longer accessible.')
-            ->line('Server Name: ' . $this->server->name)
-            ->action('Visit Panel', route('index'));
+        return $this->templateMail('server_suspended', [
+            'user_name' => $this->server->user->name,
+            'server_name' => $this->server->name,
+            'action_url' => route('index'),
+        ]);
     }
 }

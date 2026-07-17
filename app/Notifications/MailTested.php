@@ -8,20 +8,21 @@ use Illuminate\Notifications\Messages\MailMessage;
 
 class MailTested extends Notification
 {
+    use UsesNotificationTemplate;
+
     public function __construct(private User $user)
     {
     }
 
     public function via(): array
     {
-        return ['mail'];
+        return $this->notificationChannels('mail_tested');
     }
 
     public function toMail(): MailMessage
     {
-        return (new MailMessage())
-            ->subject(config('brand.name') . ' Test Message')
-            ->greeting('Hello ' . $this->user->name . '!')
-            ->line('This is a test of the ' . config('brand.name') . ' mail system. You\'re good to go!');
+        return $this->templateMail('mail_tested', [
+            'user_name' => $this->user->name,
+        ]);
     }
 }

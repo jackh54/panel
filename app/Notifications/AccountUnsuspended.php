@@ -11,6 +11,7 @@ use Illuminate\Notifications\Messages\MailMessage;
 class AccountUnsuspended extends Notification implements ShouldQueue
 {
     use Queueable;
+    use UsesNotificationTemplate;
 
     public bool $afterCommit = true;
 
@@ -20,15 +21,14 @@ class AccountUnsuspended extends Notification implements ShouldQueue
 
     public function via(): array
     {
-        return ['mail'];
+        return $this->notificationChannels('account_unsuspended');
     }
 
     public function toMail(): MailMessage
     {
-        return (new MailMessage())
-            ->subject('Account Unsuspended')
-            ->greeting('Hello ' . $this->user->name . '!')
-            ->line('Your account has been unsuspended. You may sign in again.')
-            ->action('Sign In', route('auth.login'));
+        return $this->templateMail('account_unsuspended', [
+            'user_name' => $this->user->name,
+            'action_url' => route('auth.login'),
+        ]);
     }
 }

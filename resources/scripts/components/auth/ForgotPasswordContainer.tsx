@@ -10,7 +10,7 @@ import { Formik, FormikHelpers } from 'formik';
 import { object, string } from 'yup';
 import tw from 'twin.macro';
 import Button from '@/components/elements/Button';
-import Reaptcha from 'reaptcha';
+import TurnstileWidget, { TurnstileHandle } from '@/components/elements/TurnstileWidget';
 import useFlash from '@/plugins/useFlash';
 
 interface Values {
@@ -18,11 +18,13 @@ interface Values {
 }
 
 export default () => {
-    const ref = useRef<Reaptcha>(null);
+    const ref = useRef<TurnstileHandle>(null);
     const [token, setToken] = useState('');
 
     const { clearFlashes, addFlash } = useFlash();
-    const { enabled: recaptchaEnabled, siteKey } = useStoreState((state) => state.settings.data!.recaptcha);
+    const captcha = useStoreState((state) => state.settings.data!.turnstile || state.settings.data!.recaptcha);
+    const captchaEnabled = captcha.enabled;
+    const siteKey = captcha.siteKey;
 
     useEffect(() => {
         clearFlashes();
@@ -31,9 +33,7 @@ export default () => {
     const handleSubmission = ({ email }: Values, { setSubmitting, resetForm }: FormikHelpers<Values>) => {
         clearFlashes();
 
-        // If there is no token in the state yet, request the token and then abort this submit request
-        // since it will be re-submitted when the recaptcha data is returned by the component.
-        if (recaptchaEnabled && !token) {
+        if (captchaEnabled && !token) {
             ref.current!.execute().catch((error) => {
                 console.error(error);
 
@@ -55,7 +55,7 @@ export default () => {
             })
             .then(() => {
                 setToken('');
-                if (ref.current) ref.current.reset();
+                ref.current?.reset();
 
                 setSubmitting(false);
             });
@@ -86,16 +86,19 @@ export default () => {
                             Send Email
                         </Button>
                     </div>
-                    {recaptchaEnabled && (
-                        <Reaptcha
+                    {captchaEnabled && (
+                        <TurnstileWidget
                             ref={ref}
-                            size={'invisible'}
-                            sitekey={siteKey || '_invalid_key'}
+                            siteKey={siteKey || '_invalid_key'}
                             onVerify={(response) => {
                                 setToken(response);
                                 submitForm();
                             }}
                             onExpire={() => {
+                                setSubmitting(false);
+                                setToken('');
+                            }}
+                            onError={() => {
                                 setSubmitting(false);
                                 setToken('');
                             }}

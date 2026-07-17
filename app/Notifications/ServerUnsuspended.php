@@ -11,6 +11,7 @@ use Illuminate\Notifications\Messages\MailMessage;
 class ServerUnsuspended extends Notification implements ShouldQueue
 {
     use Queueable;
+    use UsesNotificationTemplate;
 
     public bool $afterCommit = true;
 
@@ -20,16 +21,15 @@ class ServerUnsuspended extends Notification implements ShouldQueue
 
     public function via(): array
     {
-        return ['mail'];
+        return $this->notificationChannels('server_unsuspended');
     }
 
     public function toMail(): MailMessage
     {
-        return (new MailMessage())
-            ->subject('Server Unsuspended: ' . $this->server->name)
-            ->greeting('Hello ' . $this->server->user->name . '!')
-            ->line('Your server has been unsuspended and is available again.')
-            ->line('Server Name: ' . $this->server->name)
-            ->action('Visit Server', url('/server/' . $this->server->uuidShort));
+        return $this->templateMail('server_unsuspended', [
+            'user_name' => $this->server->user->name,
+            'server_name' => $this->server->name,
+            'action_url' => url('/server/' . $this->server->uuidShort),
+        ]);
     }
 }

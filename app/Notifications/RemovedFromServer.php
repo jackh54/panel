@@ -10,35 +10,26 @@ use Illuminate\Notifications\Messages\MailMessage;
 class RemovedFromServer extends Notification implements ShouldQueue
 {
     use Queueable;
+    use UsesNotificationTemplate;
 
     public object $server;
 
-    /**
-     * Create a new notification instance.
-     */
     public function __construct(array $server)
     {
         $this->server = (object) $server;
     }
 
-    /**
-     * Get the notification's delivery channels.
-     */
     public function via(): array
     {
-        return ['mail'];
+        return $this->notificationChannels('removed_from_server');
     }
 
-    /**
-     * Get the mail representation of the notification.
-     */
     public function toMail(): MailMessage
     {
-        return (new MailMessage())
-            ->error()
-            ->greeting('Hello ' . $this->server->user . '.')
-            ->line('You have been removed as a subuser for the following server.')
-            ->line('Server Name: ' . $this->server->name)
-            ->action('Visit Panel', route('index'));
+        return $this->templateMail('removed_from_server', [
+            'user_name' => $this->server->user,
+            'server_name' => $this->server->name,
+            'action_url' => route('index'),
+        ]);
     }
 }
