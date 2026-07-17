@@ -1,6 +1,6 @@
 import React, { memo, useEffect, useRef, useState } from 'react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faBars, faEthernet, faHdd, faMemory, faMicrochip, faServer } from '@fortawesome/free-solid-svg-icons';
+import { faEthernet, faHdd, faMemory, faMicrochip, faServer } from '@fortawesome/free-solid-svg-icons';
 import { Link } from 'react-router-dom';
 import { Server } from '@/api/server/getServer';
 import getServerResourceUsage, { ServerPowerState, ServerStats } from '@/api/server/getServerResourceUsage';
@@ -28,7 +28,7 @@ const IconDescription = styled.p<{ $alarm: boolean }>`
 `;
 
 const StatusIndicatorBox = styled(GreyRowBox)<{ $status: ServerPowerState | undefined }>`
-    ${tw`grid grid-cols-12 gap-4 relative flex-1`};
+    ${tw`grid grid-cols-12 gap-4 relative`};
 
     & .status-bar {
         ${tw`w-2 bg-red-500 absolute right-0 z-20 rounded-full m-1 opacity-50 transition-all duration-150`};
@@ -54,12 +54,14 @@ type Props = {
     className?: string;
     draggable?: boolean;
     isDragging?: boolean;
+    isDropTarget?: boolean;
     onDragStart?: () => void;
     onDragEnd?: () => void;
 };
 
-export default ({ server, className, draggable, isDragging, onDragStart, onDragEnd }: Props) => {
+export default ({ server, className, draggable, isDragging, isDropTarget, onDragStart, onDragEnd }: Props) => {
     const interval = useRef<Timer>(null) as React.MutableRefObject<Timer>;
+    const dragMoved = useRef(false);
     const [isSuspended, setIsSuspended] = useState(server.status === 'suspended');
     const [stats, setStats] = useState<ServerStats | null>(null);
 
@@ -98,22 +100,47 @@ export default ({ server, className, draggable, isDragging, onDragStart, onDragE
     const cpuLimit = server.limits.cpu !== 0 ? server.limits.cpu + ' %' : 'Unlimited';
 
     return (
-        <div css={[tw`flex items-stretch`, isDragging && tw`opacity-50`]} className={className}>
-            {draggable && (
-                <div
-                    draggable
-                    onDragStart={(event) => {
-                        event.dataTransfer.effectAllowed = 'move';
-                        onDragStart?.();
-                    }}
-                    onDragEnd={() => onDragEnd?.()}
-                    title={'Drag to reorder'}
-                    css={tw`flex items-center px-3 mr-2 rounded-lg cursor-move bg-neutral-800 border border-neutral-600/50 text-neutral-400 hover:text-neutral-100 hover:border-neutral-500 transition-colors duration-200`}
-                >
-                    <FontAwesomeIcon icon={faBars} />
-                </div>
-            )}
-            <StatusIndicatorBox as={Link} to={`/server/${server.id}`} $status={stats?.status}>
+        <div
+            className={className}
+            draggable={draggable}
+            onDragStart={(event) => {
+                if (!draggable) return;
+                dragMoved.current = false;
+                event.dataTransfer.effectAllowed = 'move';
+                event.dataTransfer.setData('text/plain', server.uuid);
+                const target = event.currentTarget as HTMLElement;
+                event.dataTransfer.setDragImage(target, Math.min(event.nativeEvent.offsetX, target.offsetWidth / 2), 24);
+                onDragStart?.();
+            }}
+            onDrag={() => {
+                dragMoved.current = true;
+            }}
+            onDragEnd={() => {
+                onDragEnd?.();
+                // Keep the flag briefly so the click from releasing the drag is ignored.
+                window.setTimeout(() => {
+                    dragMoved.current = false;
+                }, 0);
+            }}
+            css={[
+                tw`transition-all duration-200 rounded-xl`,
+                draggable && tw`cursor-move`,
+                isDragging && tw`opacity-40 scale-[0.98]`,
+                isDropTarget && !isDragging && tw`ring-2 ring-cyan-400 ring-opacity-40`,
+            ]}
+        >
+            <StatusIndicatorBox
+                as={Link}
+                to={`/server/${server.id}`}
+                $status={stats?.status}
+                onClick={(event: React.MouseEvent) => {
+                    if (dragMoved.current) {
+                        event.preventDefault();
+                        event.stopPropagation();
+                    }
+                }}
+                css={draggable ? tw`select-none` : undefined}
+            >
                 <div css={tw`flex items-center col-span-12 sm:col-span-5 lg:col-span-6`}>
                     <div className={'icon mr-4'}>
                         <FontAwesomeIcon icon={faServer} />

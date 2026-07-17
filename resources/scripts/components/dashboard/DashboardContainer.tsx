@@ -26,6 +26,7 @@ export default () => {
     const [showOnlyAdmin, setShowOnlyAdmin] = usePersistedState(`${uuid}:show_all_servers`, false);
     const [orderedServers, setOrderedServers] = useState<Server[]>([]);
     const [draggingUuid, setDraggingUuid] = useState<string | null>(null);
+    const [dropTargetUuid, setDropTargetUuid] = useState<string | null>(null);
     const [savingOrder, setSavingOrder] = useState(false);
 
     const { data: servers, error, mutate } = useSWR<PaginatedResult<Server>>(
@@ -73,6 +74,7 @@ export default () => {
     const onDrop = (targetUuid: string) => {
         if (!draggingUuid || draggingUuid === targetUuid || savingOrder) {
             setDraggingUuid(null);
+            setDropTargetUuid(null);
             return;
         }
 
@@ -80,6 +82,7 @@ export default () => {
         const toIndex = orderedServers.findIndex((server) => server.uuid === targetUuid);
         if (fromIndex < 0 || toIndex < 0) {
             setDraggingUuid(null);
+            setDropTargetUuid(null);
             return;
         }
 
@@ -87,6 +90,7 @@ export default () => {
         const [moved] = next.splice(fromIndex, 1);
         next.splice(toIndex, 0, moved);
         setDraggingUuid(null);
+        setDropTargetUuid(null);
         persistOrder(next);
     };
 
@@ -107,9 +111,9 @@ export default () => {
                 </div>
             )}
             {canReorder && (
-                <p css={tw`mb-2 text-xs text-neutral-400`}>
-                    Drag servers using the handle to reorder your list
-                    {savingOrder ? ' — saving…' : '.'}
+                <p css={tw`mb-2 text-xs text-neutral-500`}>
+                    Drag a server card to reorder
+                    {savingOrder ? ' — saving…' : ''}
                 </p>
             )}
             {!servers ? (
@@ -123,11 +127,20 @@ export default () => {
                                     key={server.uuid}
                                     css={index > 0 ? tw`mt-2` : undefined}
                                     onDragOver={(event) => {
+                                        if (!canReorder || !draggingUuid) return;
+                                        event.preventDefault();
+                                        if (dropTargetUuid !== server.uuid) {
+                                            setDropTargetUuid(server.uuid);
+                                        }
+                                    }}
+                                    onDragLeave={() => {
+                                        if (dropTargetUuid === server.uuid) {
+                                            setDropTargetUuid(null);
+                                        }
+                                    }}
+                                    onDrop={(event) => {
                                         if (!canReorder) return;
                                         event.preventDefault();
-                                    }}
-                                    onDrop={() => {
-                                        if (!canReorder) return;
                                         onDrop(server.uuid);
                                     }}
                                 >
@@ -135,8 +148,12 @@ export default () => {
                                         server={server}
                                         draggable={canReorder}
                                         onDragStart={() => setDraggingUuid(server.uuid)}
-                                        onDragEnd={() => setDraggingUuid(null)}
+                                        onDragEnd={() => {
+                                            setDraggingUuid(null);
+                                            setDropTargetUuid(null);
+                                        }}
                                         isDragging={draggingUuid === server.uuid}
+                                        isDropTarget={dropTargetUuid === server.uuid}
                                     />
                                 </div>
                             ))
