@@ -3,18 +3,18 @@
     <head>
         <meta charset="utf-8">
         <meta http-equiv="X-UA-Compatible" content="IE=edge">
-        <title>{{ config('app.name', 'Pterodactyl') }} - @yield('title')</title>
+        <title>{{ config('app.name', 'PandaScript') }} - @yield('title')</title>
         <meta content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" name="viewport">
         <meta name="_token" content="{{ csrf_token() }}">
 
-        <link rel="apple-touch-icon" sizes="180x180" href="/favicons/apple-touch-icon.png">
-        <link rel="icon" type="image/png" href="/favicons/favicon-32x32.png" sizes="32x32">
-        <link rel="icon" type="image/png" href="/favicons/favicon-16x16.png" sizes="16x16">
+        <link rel="apple-touch-icon" sizes="180x180" href="/assets/branding/logo.png">
+        <link rel="icon" type="image/png" href="/assets/branding/logo.png" sizes="32x32">
+        <link rel="icon" type="image/png" href="/assets/branding/logo.png" sizes="16x16">
         <link rel="manifest" href="/favicons/manifest.json">
-        <link rel="mask-icon" href="/favicons/safari-pinned-tab.svg" color="#bc6e3c">
-        <link rel="shortcut icon" href="/favicons/favicon.ico">
+        <link rel="mask-icon" href="/assets/branding/logo.png" color="#10151c">
+        <link rel="shortcut icon" href="/assets/branding/logo.png">
         <meta name="msapplication-config" content="/favicons/browserconfig.xml">
-        <meta name="theme-color" content="#0e4688">
+        <meta name="theme-color" content="#10151c">
 
         @include('layouts.scripts')
 
@@ -39,7 +39,11 @@
         <div class="wrapper">
             <header class="main-header">
                 <a href="{{ route('index') }}" class="logo">
-                    <span>{{ config('app.name', 'Pterodactyl') }}</span>
+                    <span class="logo-mini"><img src="{{ config('brand.logo_path') }}" alt="{{ config('brand.name') }}" style="height:34px;width:34px;object-fit:contain;margin-top:8px;"></span>
+                    <span class="logo-lg" style="display:flex;align-items:center;gap:8px;">
+                        <img src="{{ config('brand.logo_path') }}" alt="{{ config('brand.name') }}" style="height:28px;width:28px;object-fit:contain;">
+                        <span>{{ config('app.name', 'PandaScript') }}</span>
+                    </span>
                 </a>
                 <nav class="navbar navbar-static-top">
                     <a href="#" class="sidebar-toggle" data-toggle="push-menu" role="button">
@@ -159,7 +163,7 @@
                     <strong><i class="fa fa-fw {{ $appIsGit ? 'fa-git-square' : 'fa-code-fork' }}"></i></strong> {{ $appVersion }}<br />
                     <strong><i class="fa fa-fw fa-clock-o"></i></strong> {{ round(microtime(true) - LARAVEL_START, 3) }}s
                 </div>
-                Copyright &copy; 2015 - {{ date('Y') }} <a href="https://pterodactyl.io/">Pterodactyl Software</a>.
+                Copyright &copy; {{ date('Y') }} <a href="{{ config('brand.url') }}">{{ config('brand.company') }}</a>.
             </footer>
         </div>
         @section('footer-scripts')

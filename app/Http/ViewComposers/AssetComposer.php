@@ -21,11 +21,16 @@ class AssetComposer
     {
         $view->with('asset', $this->assetHashService);
         $view->with('siteConfiguration', [
-            'name' => config('app.name') ?? 'Pterodactyl',
+            'name' => config('brand.name') ?? config('app.name') ?? 'PandaScript',
             'locale' => config('app.locale') ?? 'en',
             'recaptcha' => [
                 'enabled' => config('recaptcha.enabled', false),
                 'siteKey' => config('recaptcha.website_key') ?? '',
+            ],
+            'branding' => [
+                'logo' => config('brand.logo_path') ?: config('brand.logo'),
+                'company' => config('brand.company'),
+                'url' => config('brand.url'),
             ],
             'sentry' => [
                 'dsn' => config('sentry.frontend_dsn') ?: null,

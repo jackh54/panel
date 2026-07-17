@@ -7,6 +7,11 @@ export interface SiteSettings {
         enabled: boolean;
         siteKey: string;
     };
+    branding?: {
+        logo?: string;
+        company?: string;
+        url?: string;
+    };
     sentry?: {
         dsn?: string | null;
         environment?: string;

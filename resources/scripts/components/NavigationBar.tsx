@@ -37,6 +37,8 @@ const RightNavigation = styled.div`
 
 export default () => {
     const name = useStoreState((state: ApplicationStore) => state.settings.data!.name);
+    const branding = useStoreState((state: ApplicationStore) => state.settings.data?.branding);
+    const logo = branding?.logo || '/assets/branding/logo.png';
     const rootAdmin = useStoreState((state: ApplicationStore) => state.user.data!.rootAdmin);
     const [isLoggingOut, setIsLoggingOut] = useState(false);
 
@@ -60,10 +62,11 @@ export default () => {
                     <Link
                         to={'/'}
                         className={
-                            'text-2xl font-header font-medium px-4 no-underline text-neutral-100 hover:text-white transition-colors duration-200'
+                            'flex items-center gap-3 px-4 no-underline text-neutral-100 hover:text-white transition-colors duration-200'
                         }
                     >
-                        {name}
+                        <img src={logo} alt={name} className={'h-8 w-8 object-contain'} />
+                        <span className={'text-2xl font-header font-medium'}>{name}</span>
                     </Link>
                 </div>
                 <RightNavigation className={'flex h-full items-center justify-center'}>
