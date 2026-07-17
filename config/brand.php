@@ -21,10 +21,11 @@ return [
     | Logo
     |--------------------------------------------------------------------------
     |
-    | `logo` should be an absolute URL for emails (clients block relative images).
-    | `logo_path` is the panel-served asset used in the React UI.
+    | logo_path is served by the panel (tracked in git at public/branding/logo.png).
+    | logo is an optional absolute URL override (emails need an absolute URL; if
+    | unset we generate one from APP_URL + logo_path).
     |
     */
-    'logo' => env('APP_LOGO', 'https://r.pandascript.dev/images/PandaScript.png'),
-    'logo_path' => env('APP_LOGO_PATH', '/assets/branding/logo.png'),
+    'logo' => env('APP_LOGO'),
+    'logo_path' => env('APP_LOGO_PATH', '/branding/logo.png'),
 ];

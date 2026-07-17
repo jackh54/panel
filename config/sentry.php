@@ -9,8 +9,11 @@ return [
     | Used by the React client panel. Leave empty to disable browser reporting.
     | This is injected at runtime via SiteConfiguration — no asset rebuild needed.
     |
+    | Accepted env keys (first match wins):
+    |   SENTRY_FRONTEND_DSN, SENTRY_DSN_FRONTEND, SENTRY_DSN
+    |
     */
-    'frontend_dsn' => env('SENTRY_FRONTEND_DSN', env('SENTRY_DSN_FRONTEND')),
+    'frontend_dsn' => env('SENTRY_FRONTEND_DSN', env('SENTRY_DSN_FRONTEND', env('SENTRY_DSN'))),
 
     /*
     |--------------------------------------------------------------------------

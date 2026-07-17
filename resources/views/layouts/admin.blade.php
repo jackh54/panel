@@ -7,12 +7,12 @@
         <meta content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" name="viewport">
         <meta name="_token" content="{{ csrf_token() }}">
 
-        <link rel="apple-touch-icon" sizes="180x180" href="/assets/branding/logo.png">
-        <link rel="icon" type="image/png" href="/assets/branding/logo.png" sizes="32x32">
-        <link rel="icon" type="image/png" href="/assets/branding/logo.png" sizes="16x16">
+        <link rel="apple-touch-icon" sizes="180x180" href="/branding/logo.png">
+        <link rel="icon" type="image/png" href="/branding/logo.png" sizes="32x32">
+        <link rel="icon" type="image/png" href="/branding/logo.png" sizes="16x16">
         <link rel="manifest" href="/favicons/manifest.json">
-        <link rel="mask-icon" href="/assets/branding/logo.png" color="#10151c">
-        <link rel="shortcut icon" href="/assets/branding/logo.png">
+        <link rel="mask-icon" href="/branding/logo.png" color="#10151c">
+        <link rel="shortcut icon" href="/branding/logo.png">
         <meta name="msapplication-config" content="/favicons/browserconfig.xml">
         <meta name="theme-color" content="#10151c">
 

@@ -7,21 +7,22 @@ interface ExtendedWindow extends Window {
 
 /**
  * Initialize browser Sentry when a frontend DSN is configured.
- * Safe to call when DSN is missing — it becomes a no-op.
  */
 export default function initSentry(): void {
     const sentry = (window as ExtendedWindow).SiteConfiguration?.sentry;
-    if (!sentry?.dsn) {
+    const dsn = typeof sentry?.dsn === 'string' ? sentry.dsn.trim() : '';
+
+    if (!dsn) {
         return;
     }
 
     Sentry.init({
-        dsn: sentry.dsn,
-        environment: sentry.environment || undefined,
-        release: sentry.release || undefined,
+        dsn,
+        environment: sentry?.environment || undefined,
+        release: sentry?.release || undefined,
         integrations: [Sentry.browserTracingIntegration(), Sentry.replayIntegration()],
-        tracesSampleRate: sentry.tracesSampleRate ?? 0.1,
-        replaysSessionSampleRate: sentry.replaysSessionSampleRate ?? 0,
-        replaysOnErrorSampleRate: sentry.replaysOnErrorSampleRate ?? 1,
+        tracesSampleRate: sentry?.tracesSampleRate ?? 0.1,
+        replaysSessionSampleRate: sentry?.replaysSessionSampleRate ?? 0,
+        replaysOnErrorSampleRate: sentry?.replaysOnErrorSampleRate ?? 1,
     });
 }

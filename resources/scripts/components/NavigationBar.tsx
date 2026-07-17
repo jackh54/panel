@@ -38,7 +38,7 @@ const RightNavigation = styled.div`
 export default () => {
     const name = useStoreState((state: ApplicationStore) => state.settings.data!.name);
     const branding = useStoreState((state: ApplicationStore) => state.settings.data?.branding);
-    const logo = branding?.logo || '/assets/branding/logo.png';
+    const logo = branding?.logo || '/branding/logo.png';
     const rootAdmin = useStoreState((state: ApplicationStore) => state.user.data!.rootAdmin);
     const [isLoggingOut, setIsLoggingOut] = useState(false);
 

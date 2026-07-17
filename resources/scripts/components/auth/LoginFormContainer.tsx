@@ -32,7 +32,7 @@ const Container = styled.div`
 const LoginFormContainer = forwardRef<HTMLFormElement, Props>(({ title, ...props }, ref) => {
     const branding = useStoreState((state) => state.settings.data?.branding);
     const name = useStoreState((state) => state.settings.data?.name) || 'PandaScript';
-    const logo = branding?.logo || '/assets/branding/logo.png';
+    const logo = branding?.logo || '/branding/logo.png';
     const company = branding?.company || name;
     const companyUrl = branding?.url || 'https://pandascript.dev';
 

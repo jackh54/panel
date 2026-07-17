@@ -28,12 +28,12 @@ class AssetComposer
                 'siteKey' => config('recaptcha.website_key') ?? '',
             ],
             'branding' => [
-                'logo' => config('brand.logo_path') ?: config('brand.logo'),
+                'logo' => config('brand.logo_path') ?: '/branding/logo.png',
                 'company' => config('brand.company'),
                 'url' => config('brand.url'),
             ],
             'sentry' => [
-                'dsn' => config('sentry.frontend_dsn') ?: null,
+                'dsn' => ($dsn = trim((string) config('sentry.frontend_dsn'))) !== '' ? $dsn : null,
                 'environment' => config('sentry.environment'),
                 'release' => config('sentry.release') ?: null,
                 'tracesSampleRate' => config('sentry.traces_sample_rate', 0.1),
