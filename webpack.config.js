@@ -2,14 +2,18 @@ const path = require('node:path');
 const webpack = require('webpack');
 const { WebpackAssetsManifest } = require('webpack-assets-manifest');
 const TerserPlugin = require('terser-webpack-plugin');
+const { sentryWebpackPlugin } = require('@sentry/webpack-plugin');
 
 const isProduction = process.env.NODE_ENV === 'production';
+const sentryRelease = process.env.SENTRY_RELEASE || undefined;
+const sentryAuthToken = process.env.SENTRY_AUTH_TOKEN || '';
 
 module.exports = {
     cache: true,
     target: 'web',
     mode: isProduction ? 'production' : 'development',
-    devtool: process.env.DEVTOOL || (isProduction ? false : 'eval-source-map'),
+    // hidden-source-map: generate maps for Sentry upload without exposing them publicly
+    devtool: process.env.DEVTOOL || (isProduction ? 'hidden-source-map' : 'eval-source-map'),
     performance: {
         hints: false,
     },
@@ -112,6 +116,22 @@ module.exports = {
             integrity: true,
             integrityHashes: ['sha384'],
         }),
+        ...(isProduction && sentryAuthToken
+            ? [
+                  sentryWebpackPlugin({
+                      org: process.env.SENTRY_ORG || 'pandascript',
+                      project: process.env.SENTRY_PROJECT || 'pandascript-panel',
+                      authToken: sentryAuthToken,
+                      release: {
+                          name: sentryRelease,
+                      },
+                      sourcemaps: {
+                          filesToDeleteAfterUpload: ['./public/assets/**/*.map'],
+                      },
+                      telemetry: false,
+                  }),
+              ]
+            : []),
     ],
     optimization: {
         usedExports: true,

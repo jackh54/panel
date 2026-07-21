@@ -117,24 +117,36 @@ class UserController extends ApplicationApiController
 
     /**
      * Suspend a user account and cascade-suspend owned servers.
-     *
-     * @throws \Throwable
      */
     public function suspend(SuspendUserRequest $request, User $user): JsonResponse
     {
-        $this->suspensionService->suspend($user);
+        try {
+            $this->suspensionService->suspend($user);
+        } catch (\Throwable $exception) {
+            report($exception);
+
+            if (!$user->refresh()->suspended) {
+                throw $exception;
+            }
+        }
 
         return new JsonResponse([], JsonResponse::HTTP_NO_CONTENT);
     }
 
     /**
      * Unsuspend a user account and restore servers suspended with the account.
-     *
-     * @throws \Throwable
      */
     public function unsuspend(SuspendUserRequest $request, User $user): JsonResponse
     {
-        $this->suspensionService->unsuspend($user);
+        try {
+            $this->suspensionService->unsuspend($user);
+        } catch (\Throwable $exception) {
+            report($exception);
+
+            if ($user->refresh()->suspended) {
+                throw $exception;
+            }
+        }
 
         return new JsonResponse([], JsonResponse::HTTP_NO_CONTENT);
     }

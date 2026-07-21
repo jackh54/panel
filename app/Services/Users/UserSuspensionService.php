@@ -21,6 +21,9 @@ class UserSuspensionService
     /**
      * Suspend a user account, cascade-suspend owned servers, revoke sessions/tokens.
      *
+     * Side-effects after the account flag is saved (Wings sync, mail, SFTP revoke)
+     * are isolated so they cannot turn a successful suspend into an HTTP 500.
+     *
      * @throws \Throwable
      */
     public function suspend(User $user): void
@@ -39,6 +42,7 @@ class UserSuspensionService
 
             $user->tokens()->delete();
             $user->apiKeys()->delete();
+            $this->forgetSessions($user);
         });
 
         // Suspend servers outside the account transaction so a Wings failure on one
@@ -46,7 +50,7 @@ class UserSuspensionService
         foreach ($servers as $server) {
             try {
                 $this->suspensionService->toggle($server, SuspensionService::ACTION_SUSPEND, false);
-                $server->forceFill(['suspended_for_account' => true])->save();
+                $server->forceFill(['suspended_for_account' => true])->skipValidation()->save();
             } catch (\Throwable $exception) {
                 Log::warning('Failed to suspend server during account suspension.', [
                     'user_id' => $user->id,
@@ -56,7 +60,7 @@ class UserSuspensionService
             }
         }
 
-        PasswordChanged::dispatch($user->refresh());
+        $this->revokeAccessSafely($user->refresh());
         $this->notifySafely($user, new AccountSuspended($user), 'account_suspended');
     }
 
@@ -82,7 +86,7 @@ class UserSuspensionService
         foreach ($servers as $server) {
             try {
                 $this->suspensionService->toggle($server, SuspensionService::ACTION_UNSUSPEND, false);
-                $server->forceFill(['suspended_for_account' => false])->save();
+                $server->forceFill(['suspended_for_account' => false])->skipValidation()->save();
             } catch (\Throwable $exception) {
                 Log::warning('Failed to unsuspend server during account unsuspension.', [
                     'user_id' => $user->id,
@@ -93,6 +97,42 @@ class UserSuspensionService
         }
 
         $this->notifySafely($user->refresh(), new AccountUnsuspended($user), 'account_unsuspended');
+    }
+
+    /**
+     * Drop database-backed sessions so the user is forced to log in again.
+     */
+    private function forgetSessions(User $user): void
+    {
+        if (config('session.driver') !== 'database') {
+            return;
+        }
+
+        try {
+            DB::table(config('session.table', 'sessions'))
+                ->where('user_id', $user->id)
+                ->delete();
+        } catch (\Throwable $exception) {
+            Log::warning('Failed to clear sessions during account suspension.', [
+                'user_id' => $user->id,
+                'exception' => $exception->getMessage(),
+            ]);
+        }
+    }
+
+    /**
+     * Revoke SFTP/websocket access without failing the HTTP request if the queue/Wings path errors.
+     */
+    private function revokeAccessSafely(User $user): void
+    {
+        try {
+            PasswordChanged::dispatch($user);
+        } catch (\Throwable $exception) {
+            Log::warning('Failed to revoke remote access during account suspension.', [
+                'user_id' => $user->id,
+                'exception' => $exception->getMessage(),
+            ]);
+        }
     }
 
     private function notifySafely(User $user, object $notification, string $type): void

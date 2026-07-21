@@ -135,7 +135,6 @@ class UserController extends Controller
     /**
      * Suspend a user account and all servers they own.
      *
-     * @throws \Throwable
      * @throws DisplayException
      */
     public function suspend(Request $request, User $user): RedirectResponse
@@ -144,21 +143,39 @@ class UserController extends Controller
             throw new DisplayException('You cannot suspend your own account.');
         }
 
-        $this->suspensionService->suspend($user);
-        $this->alert->success('Account has been suspended. All owned servers were suspended and active sessions were revoked.')->flash();
+        try {
+            $this->suspensionService->suspend($user);
+            $this->alert->success('Account has been suspended. All owned servers were suspended and active sessions were revoked.')->flash();
+        } catch (\Throwable $exception) {
+            report($exception);
+
+            if ($user->refresh()->suspended) {
+                $this->alert->warning('Account was suspended, but some follow-up work failed. Check the logs for details.')->flash();
+            } else {
+                $this->alert->danger('Failed to suspend this account. Check the logs for details.')->flash();
+            }
+        }
 
         return redirect()->route('admin.users.view', $user->id);
     }
 
     /**
      * Unsuspend a user account and restore servers suspended with the account.
-     *
-     * @throws \Throwable
      */
     public function unsuspend(User $user): RedirectResponse
     {
-        $this->suspensionService->unsuspend($user);
-        $this->alert->success('Account has been unsuspended. Servers suspended with the account were restored.')->flash();
+        try {
+            $this->suspensionService->unsuspend($user);
+            $this->alert->success('Account has been unsuspended. Servers suspended with the account were restored.')->flash();
+        } catch (\Throwable $exception) {
+            report($exception);
+
+            if (!$user->refresh()->suspended) {
+                $this->alert->warning('Account was unsuspended, but some follow-up work failed. Check the logs for details.')->flash();
+            } else {
+                $this->alert->danger('Failed to unsuspend this account. Check the logs for details.')->flash();
+            }
+        }
 
         return redirect()->route('admin.users.view', $user->id);
     }

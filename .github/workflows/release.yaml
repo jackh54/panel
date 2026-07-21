@@ -17,7 +17,6 @@ jobs:
           cache: yarn
       - run: yarn install --frozen-lockfile
       - run: yarn tsc
-      - run: yarn build:production
       - name: create release branch and bump version
         env:
           VERSION: ${{ github.ref_name }}
@@ -31,9 +30,22 @@ jobs:
           git add config/app.php
           git commit -m 'ci(release): bump version'
           git push
+      - name: build frontend (upload source maps to Sentry)
+        env:
+          VERSION: ${{ github.ref_name }}
+          SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
+          SENTRY_ORG: ${{ vars.SENTRY_ORG }}
+          SENTRY_PROJECT: ${{ vars.SENTRY_PROJECT }}
+        run: |
+          export SENTRY_RELEASE="panel@${VERSION#v}"
+          export SENTRY_ORG="${SENTRY_ORG:-pandascript}"
+          export SENTRY_PROJECT="${SENTRY_PROJECT:-pandascript-panel}"
+          yarn build:production
       - name: create release archive
         run: |
           rm -rf node_modules tests CONTRIBUTING.md flake.lock flake.nix phpunit.xml shell.nix
+          # Never ship source maps in the tarball (defense in depth if upload was skipped)
+          find public/assets -name '*.map' -delete 2>/dev/null || true
           tar -czf panel.tar.gz * .editorconfig .env.example .eslintignore .eslintrc.js .gitignore .prettierrc.json
       - name: write changelog
         run: |

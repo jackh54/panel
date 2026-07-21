@@ -86,6 +86,12 @@ class Handler extends ExceptionHandler
         $this->reportable(function (TransportException $ex) {
             $ex = $this->generateCleanedExceptionStack($ex);
         });
+
+        $this->reportable(function (\Throwable $e) {
+            if (app()->bound('sentry')) {
+                \Sentry\Laravel\Integration::captureUnhandledException($e);
+            }
+        });
     }
 
     private function generateCleanedExceptionStack(\Throwable $exception): string

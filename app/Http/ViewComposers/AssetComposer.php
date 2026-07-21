@@ -37,12 +37,12 @@ class AssetComposer
                 'url' => config('brand.url'),
             ],
             'sentry' => [
-                'dsn' => ($dsn = trim((string) config('sentry.frontend_dsn'))) !== '' ? $dsn : null,
-                'environment' => config('sentry.environment'),
-                'release' => config('sentry.release') ?: null,
-                'tracesSampleRate' => config('sentry.traces_sample_rate', 0.1),
-                'replaysSessionSampleRate' => config('sentry.replays_session_sample_rate', 0.0),
-                'replaysOnErrorSampleRate' => config('sentry.replays_on_error_sample_rate', 1.0),
+                'dsn' => ($dsn = trim((string) config('sentry-frontend.dsn'))) !== '' ? $dsn : null,
+                'environment' => config('sentry.environment') ?: config('app.env'),
+                'release' => sentry_release(),
+                'tracesSampleRate' => (float) config('sentry-frontend.traces_sample_rate', 0.1),
+                'replaysSessionSampleRate' => (float) config('sentry-frontend.replays_session_sample_rate', 0.0),
+                'replaysOnErrorSampleRate' => (float) config('sentry-frontend.replays_on_error_sample_rate', 1.0),
             ],
         ]);
     }

@@ -11,6 +11,31 @@ if (!function_exists('is_digit')) {
     }
 }
 
+if (!function_exists('sentry_release')) {
+    /**
+     * Resolve the Sentry release name shared by PHP and the React client.
+     */
+    function sentry_release(): ?string
+    {
+        $configured = config('sentry.release');
+        if (is_string($configured) && trim($configured) !== '') {
+            return trim($configured);
+        }
+
+        $fromEnv = trim((string) env('SENTRY_RELEASE', ''));
+        if ($fromEnv !== '') {
+            return $fromEnv;
+        }
+
+        $version = trim((string) config('app.version', ''));
+        if ($version === '' || $version === 'canary') {
+            return null;
+        }
+
+        return 'panel@' . ltrim($version, 'v');
+    }
+}
+
 if (!function_exists('object_get_strict')) {
     /**
      * Get an object using dot notation. An object key with a value of null is still considered valid

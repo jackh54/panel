@@ -20,7 +20,10 @@ class ErrorBoundary extends React.Component<{}, State> {
 
     componentDidCatch(error: Error, info: React.ErrorInfo) {
         console.error(error);
-        Sentry.captureException(error, { extra: { componentStack: info.componentStack } });
+        const eventId = Sentry.captureException(error, { extra: { componentStack: info.componentStack } });
+        if (eventId) {
+            Sentry.showReportDialog({ eventId });
+        }
     }
 
     render() {

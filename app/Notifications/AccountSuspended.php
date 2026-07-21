@@ -13,8 +13,6 @@ class AccountSuspended extends Notification implements ShouldQueue
     use Queueable;
     use UsesNotificationTemplate;
 
-    public bool $afterCommit = true;
-
     public function __construct(public User $user)
     {
     }
