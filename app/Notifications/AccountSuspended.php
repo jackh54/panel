@@ -15,6 +15,7 @@ class AccountSuspended extends Notification implements ShouldQueue
 
     public function __construct(public User $user)
     {
+        $this->afterCommit();
     }
 
     public function via(): array

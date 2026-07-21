@@ -1,6 +1,7 @@
 import React from 'react';
 import { NavLink, Route, Switch } from 'react-router-dom';
 import NavigationBar from '@/components/NavigationBar';
+import AnnouncementBanner from '@/components/elements/AnnouncementBanner';
 import DashboardContainer from '@/components/dashboard/DashboardContainer';
 import { NotFound } from '@/components/elements/ScreenBlock';
 import TransitionRouter from '@/TransitionRouter';
@@ -15,6 +16,7 @@ export default () => {
     return (
         <>
             <NavigationBar />
+            <AnnouncementBanner />
             {location.pathname.startsWith('/account') && (
                 <SubNavigation>
                     <div>

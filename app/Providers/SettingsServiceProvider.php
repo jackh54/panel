@@ -34,6 +34,18 @@ class SettingsServiceProvider extends ServiceProvider
         'pterodactyl:client_features:allocations:enabled',
         'pterodactyl:client_features:allocations:range_start',
         'pterodactyl:client_features:allocations:range_end',
+        'brand:company',
+        'brand:url',
+        'brand:logo_path',
+        'brand:link_docs_label',
+        'brand:link_docs_url',
+        'brand:link_discord_label',
+        'brand:link_discord_url',
+        'brand:link_billing_label',
+        'brand:link_billing_url',
+        'brand:announcement_enabled',
+        'brand:announcement_message',
+        'brand:announcement_type',
     ];
 
     /**

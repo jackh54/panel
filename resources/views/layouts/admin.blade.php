@@ -164,6 +164,15 @@
                     <strong><i class="fa fa-fw fa-clock-o"></i></strong> {{ round(microtime(true) - LARAVEL_START, 3) }}s
                 </div>
                 Copyright &copy; {{ date('Y') }} <a href="{{ config('brand.url') }}">{{ config('brand.company') }}</a>.
+                @foreach ([
+                    ['label' => config('brand.link_docs_label'), 'url' => config('brand.link_docs_url')],
+                    ['label' => config('brand.link_discord_label'), 'url' => config('brand.link_discord_url')],
+                    ['label' => config('brand.link_billing_label'), 'url' => config('brand.link_billing_url')],
+                ] as $link)
+                    @if(trim((string) ($link['url'] ?? '')) !== '' && trim((string) ($link['label'] ?? '')) !== '')
+                        &middot; <a href="{{ $link['url'] }}" target="_blank" rel="noopener noreferrer">{{ $link['label'] }}</a>
+                    @endif
+                @endforeach
             </footer>
         </div>
         @section('footer-scripts')

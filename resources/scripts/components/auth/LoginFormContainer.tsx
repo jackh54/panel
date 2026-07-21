@@ -25,6 +25,7 @@ const LoginFormContainer = forwardRef<HTMLFormElement, Props>(({ title, children
     const logo = branding?.logo || '/branding/logo.png';
     const company = branding?.company || name;
     const companyUrl = branding?.url || 'https://pandascript.dev';
+    const links = branding?.links?.filter((link) => link.label && link.url) || [];
 
     return (
         <Shell>
@@ -48,7 +49,23 @@ const LoginFormContainer = forwardRef<HTMLFormElement, Props>(({ title, children
                 </div>
             </Form>
 
-            <p css={tw`text-center text-neutral-500 text-xs mt-6 mb-0`}>
+            {links.length > 0 && (
+                <p css={tw`text-center text-neutral-400 text-xs mt-5 mb-0 flex flex-wrap justify-center gap-x-4 gap-y-1`}>
+                    {links.map((link) => (
+                        <a
+                            key={link.url + link.label}
+                            rel={'noopener nofollow noreferrer'}
+                            href={link.url}
+                            target={'_blank'}
+                            css={tw`no-underline text-neutral-400 hover:text-neutral-200`}
+                        >
+                            {link.label}
+                        </a>
+                    ))}
+                </p>
+            )}
+
+            <p css={tw`text-center text-neutral-500 text-xs mt-4 mb-0`}>
                 &copy; {new Date().getFullYear()}{' '}
                 <a
                     rel={'noopener nofollow noreferrer'}

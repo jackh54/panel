@@ -13,10 +13,9 @@ class ServerSuspended extends Notification implements ShouldQueue
     use Queueable;
     use UsesNotificationTemplate;
 
-    public bool $afterCommit = true;
-
     public function __construct(public Server $server)
     {
+        $this->afterCommit();
     }
 
     public function via(): array

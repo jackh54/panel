@@ -66,6 +66,7 @@ Route::group(['prefix' => 'databases'], function () {
 */
 Route::group(['prefix' => 'settings'], function () {
     Route::get('/', [Admin\Settings\IndexController::class, 'index'])->name('admin.settings');
+    Route::get('/branding', [Admin\Settings\BrandingController::class, 'index'])->name('admin.settings.branding');
     Route::get('/mail', [Admin\Settings\MailController::class, 'index'])->name('admin.settings.mail');
     Route::get('/email-templates', [Admin\Settings\EmailTemplatesController::class, 'index'])->name('admin.settings.email-templates');
     Route::get('/advanced', [Admin\Settings\AdvancedController::class, 'index'])->name('admin.settings.advanced');
@@ -75,6 +76,7 @@ Route::group(['prefix' => 'settings'], function () {
     Route::post('/email-templates/{type}/reset', [Admin\Settings\EmailTemplatesController::class, 'reset'])->name('admin.settings.email-templates.reset');
 
     Route::patch('/', [Admin\Settings\IndexController::class, 'update']);
+    Route::patch('/branding', [Admin\Settings\BrandingController::class, 'update']);
     Route::patch('/mail', [Admin\Settings\MailController::class, 'update']);
     Route::patch('/advanced', [Admin\Settings\AdvancedController::class, 'update']);
 });
@@ -94,6 +96,7 @@ Route::group(['prefix' => 'users'], function () {
     Route::get('/view/{user:id}', [Admin\UserController::class, 'view'])->name('admin.users.view');
 
     Route::post('/new', [Admin\UserController::class, 'store']);
+    Route::post('/bulk', [Admin\UserController::class, 'bulk'])->name('admin.users.bulk');
 
     Route::patch('/view/{user:id}', [Admin\UserController::class, 'update']);
     Route::post('/view/{user:id}/suspend', [Admin\UserController::class, 'suspend'])->name('admin.users.suspend');
@@ -111,6 +114,7 @@ Route::group(['prefix' => 'users'], function () {
 */
 Route::group(['prefix' => 'servers'], function () {
     Route::get('/', [Admin\Servers\ServerController::class, 'index'])->name('admin.servers');
+    Route::post('/bulk', [Admin\Servers\ServerController::class, 'bulk'])->name('admin.servers.bulk');
     Route::get('/new', [Admin\Servers\CreateServerController::class, 'index'])->name('admin.servers.new');
     Route::get('/view/{server:id}', [Admin\Servers\ServerViewController::class, 'index'])->name('admin.servers.view');
 

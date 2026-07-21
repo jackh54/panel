@@ -19,6 +19,8 @@ use Pterodactyl\Traits\Helpers\AvailableLanguages;
 use Pterodactyl\Services\Users\UserCreationService;
 use Pterodactyl\Services\Users\UserDeletionService;
 use Pterodactyl\Services\Users\UserSuspensionService;
+use Pterodactyl\Notifications\AdminUserMessage;
+use Pterodactyl\Http\Requests\Admin\BulkUserFormRequest;
 use Pterodactyl\Http\Requests\Admin\UserFormRequest;
 use Pterodactyl\Http\Requests\Admin\NewUserFormRequest;
 use Pterodactyl\Contracts\Repository\UserRepositoryInterface;
@@ -178,6 +180,68 @@ class UserController extends Controller
         }
 
         return redirect()->route('admin.users.view', $user->id);
+    }
+
+    /**
+     * Apply a bulk action to selected users (suspend, unsuspend, or email).
+     */
+    public function bulk(BulkUserFormRequest $request): RedirectResponse
+    {
+        $action = $request->input('action');
+        $ids = array_map('intval', $request->input('ids', []));
+        $users = User::query()->whereIn('id', $ids)->get();
+
+        $ok = 0;
+        $skipped = 0;
+        $failed = 0;
+
+        foreach ($users as $user) {
+            if ($action !== 'email' && $request->user()->is($user)) {
+                $skipped++;
+                continue;
+            }
+
+            try {
+                if ($action === 'suspend') {
+                    $this->suspensionService->suspend($user);
+                } elseif ($action === 'unsuspend') {
+                    $this->suspensionService->unsuspend($user);
+                } else {
+                    $user->notify(new AdminUserMessage(
+                        (string) $request->input('subject'),
+                        (string) $request->input('body'),
+                    ));
+                }
+                $ok++;
+            } catch (\Throwable $exception) {
+                report($exception);
+                $failed++;
+            }
+        }
+
+        $label = match ($action) {
+            'suspend' => 'suspended',
+            'unsuspend' => 'unsuspended',
+            default => 'emailed',
+        };
+
+        $parts = ["{$ok} user(s) {$label}."];
+        if ($skipped > 0) {
+            $parts[] = "{$skipped} skipped.";
+        }
+        if ($failed > 0) {
+            $parts[] = "{$failed} failed.";
+        }
+
+        if ($failed > 0 && $ok === 0) {
+            $this->alert->danger(implode(' ', $parts))->flash();
+        } elseif ($failed > 0 || $skipped > 0) {
+            $this->alert->warning(implode(' ', $parts))->flash();
+        } else {
+            $this->alert->success(implode(' ', $parts))->flash();
+        }
+
+        return redirect()->route('admin.users');
     }
 
     /**

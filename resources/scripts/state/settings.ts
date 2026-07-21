@@ -1,5 +1,10 @@
 import { action, Action } from 'easy-peasy';
 
+export interface BrandingLink {
+    label: string;
+    url: string;
+}
+
 export interface SiteSettings {
     name: string;
     locale: string;
@@ -15,6 +20,12 @@ export interface SiteSettings {
         logo?: string;
         company?: string;
         url?: string;
+        links?: BrandingLink[];
+    };
+    announcement?: {
+        enabled: boolean;
+        message: string;
+        type: 'info' | 'warning' | 'danger';
     };
     sentry?: {
         dsn?: string | null;

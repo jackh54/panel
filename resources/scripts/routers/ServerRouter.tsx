@@ -2,6 +2,7 @@ import TransferListener from '@/components/server/TransferListener';
 import React, { useEffect, useState } from 'react';
 import { NavLink, Route, Switch, useRouteMatch } from 'react-router-dom';
 import NavigationBar from '@/components/NavigationBar';
+import AnnouncementBanner from '@/components/elements/AnnouncementBanner';
 import TransitionRouter from '@/TransitionRouter';
 import WebsocketHandler from '@/components/server/WebsocketHandler';
 import { ServerContext } from '@/state/server';
@@ -65,6 +66,7 @@ export default () => {
     return (
         <React.Fragment key={'server-router'}>
             <NavigationBar />
+            <AnnouncementBanner />
             {!uuid || !id ? (
                 error ? (
                     <ServerError message={error} />

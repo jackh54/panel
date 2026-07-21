@@ -16,6 +16,7 @@ const PageContentBlock: React.FC<PageContentBlockProps> = ({ title, showFlashKey
     const name = useStoreState((state) => state.settings.data?.name) || 'PandaScript';
     const company = branding?.company || name;
     const companyUrl = branding?.url || 'https://pandascript.dev';
+    const links = branding?.links?.filter((link) => link.label && link.url) || [];
 
     useEffect(() => {
         if (title) {
@@ -32,6 +33,24 @@ const PageContentBlock: React.FC<PageContentBlockProps> = ({ title, showFlashKey
                 </ContentContainer>
                 <ContentContainer css={tw`mb-4`}>
                     <p css={tw`text-center text-neutral-500 text-xs`}>
+                        {links.length > 0 && (
+                            <>
+                                {links.map((link, index) => (
+                                    <React.Fragment key={link.url + link.label}>
+                                        {index > 0 && <span css={tw`mx-2 text-neutral-600`}>·</span>}
+                                        <a
+                                            rel={'noopener nofollow noreferrer'}
+                                            href={link.url}
+                                            target={'_blank'}
+                                            css={tw`no-underline text-neutral-500 hover:text-neutral-300`}
+                                        >
+                                            {link.label}
+                                        </a>
+                                    </React.Fragment>
+                                ))}
+                                <span css={tw`mx-2 text-neutral-600`}>·</span>
+                            </>
+                        )}
                         <a
                             rel={'noopener nofollow noreferrer'}
                             href={companyUrl}

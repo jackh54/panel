@@ -28,4 +28,29 @@ return [
     */
     'logo' => env('APP_LOGO'),
     'logo_path' => env('APP_LOGO_PATH', '/branding/logo.png'),
+
+    /*
+    |--------------------------------------------------------------------------
+    | Custom footer / login links
+    |--------------------------------------------------------------------------
+    |
+    | Optional links shown on the login page and client panel footer.
+    | Leave URL empty to hide a slot. Overridable from Admin → Settings → Branding.
+    |
+    */
+    'link_docs_label' => env('BRAND_LINK_DOCS_LABEL', 'Docs'),
+    'link_docs_url' => env('BRAND_LINK_DOCS_URL', ''),
+    'link_discord_label' => env('BRAND_LINK_DISCORD_LABEL', 'Discord'),
+    'link_discord_url' => env('BRAND_LINK_DISCORD_URL', ''),
+    'link_billing_label' => env('BRAND_LINK_BILLING_LABEL', 'Billing'),
+    'link_billing_url' => env('BRAND_LINK_BILLING_URL', ''),
+
+    /*
+    |--------------------------------------------------------------------------
+    | Client announcement banner
+    |--------------------------------------------------------------------------
+    */
+    'announcement_enabled' => env('BRAND_ANNOUNCEMENT_ENABLED', false),
+    'announcement_message' => env('BRAND_ANNOUNCEMENT_MESSAGE', ''),
+    'announcement_type' => env('BRAND_ANNOUNCEMENT_TYPE', 'info'),
 ];
