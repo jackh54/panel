@@ -3,8 +3,9 @@
 # Usage (on the server, as root or with sudo for chown):
 #   cd /var/www/pterodactyl && ./update.sh
 # Optional:
-#   PANEL_RELEASE=v1.2.3 ./update.sh   # pin a tag instead of latest
-#   PANEL_WEB_USER=nginx ./update.sh   # web server user:group owner
+#   PANEL_RELEASE=v1.2.3 ./update.sh          # pin a tag instead of latest
+#   PANEL_WEB_USER=nginx ./update.sh          # web server user:group owner
+#   PANEL_QUEUE_SERVICE=pteroq ./update.sh    # systemd queue unit (default: pteroq)
 
 set -euo pipefail
 
@@ -66,7 +67,20 @@ echo "==> Setting ownership to ${WEB_USER}:${WEB_USER}"
 chown -R "${WEB_USER}:${WEB_USER}" "${PANEL_DIR}"/*
 
 echo "==> Restarting queue workers"
-php artisan queue:restart
+# Soft signal for long-running workers that honor the cache restart flag.
+php artisan queue:restart || true
+# Hard restart the systemd unit — required so notification/mail jobs actually run
+# after code updates (queue:restart alone is not always enough).
+QUEUE_SERVICE="${PANEL_QUEUE_SERVICE:-pteroq}"
+if command -v systemctl >/dev/null 2>&1 && systemctl list-unit-files "${QUEUE_SERVICE}.service" >/dev/null 2>&1; then
+  if systemctl restart "${QUEUE_SERVICE}"; then
+    echo "==> Restarted ${QUEUE_SERVICE}.service"
+  else
+    echo "warning: failed to restart ${QUEUE_SERVICE}.service — start it manually: systemctl start ${QUEUE_SERVICE}" >&2
+  fi
+else
+  echo "warning: ${QUEUE_SERVICE}.service not found — ensure a queue worker is running" >&2
+fi
 
 echo "==> Exiting maintenance mode"
 php artisan up
