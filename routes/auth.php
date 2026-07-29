@@ -27,6 +27,9 @@ Route::middleware(['throttle:authentication'])->group(function () {
     Route::post('/login', [Auth\LoginController::class, 'login'])->middleware('turnstile');
     Route::post('/login/checkpoint', Auth\LoginCheckpointController::class)->name('auth.login-checkpoint');
 
+    Route::get('/passkey/options', [Auth\PasskeyAuthController::class, 'options'])->name('auth.passkey.options');
+    Route::post('/passkey/verify', [Auth\PasskeyAuthController::class, 'verify'])->name('auth.passkey.verify');
+
     // Forgot password route. A post to this endpoint will trigger an
     // email to be sent containing a reset token.
     Route::post('/password', [Auth\ForgotPasswordController::class, 'sendResetLinkEmail'])

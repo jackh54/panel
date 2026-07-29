@@ -2,6 +2,7 @@
 
 namespace Pterodactyl\Tests\Integration\Api\Client;
 
+use Illuminate\Support\Str;
 use Pterodactyl\Models\User;
 use Pterodactyl\Models\UserSession;
 use Pterodactyl\Http\Middleware\VerifyCsrfToken;
@@ -148,6 +149,70 @@ class SessionControllerTest extends ClientApiIntegrationTestCase
             ->assertNoContent();
 
         $this->assertDatabaseMissing('user_sessions', ['id' => $other->id]);
+    }
+
+    /**
+     * Revoking a device must destroy the Laravel session, invalidate remember-me,
+     * and refuse to recreate the tracking row if that session id is reused.
+     */
+    public function testRevokedSessionCannotBeResurrected(): void
+    {
+        $user = User::factory()->create([
+            'remember_token' => Str::random(60),
+        ]);
+        $originalRemember = $user->remember_token;
+
+        $sessionId = str_repeat('a', 40);
+        $session = UserSession::factory()->for($user)->create([
+            'session_id' => $sessionId,
+        ]);
+
+        // Seed a Laravel session payload so destroy has something real to remove.
+        $handler = $this->app->make('session')->getHandler();
+        $handler->write($sessionId, serialize(['login_web' => $user->id]));
+
+        $this->asFrontend($user)
+            ->deleteJson('/api/client/account/sessions/' . $session->uuid)
+            ->assertNoContent();
+
+        $this->assertDatabaseMissing('user_sessions', ['id' => $session->id]);
+        $this->assertSame('', $handler->read($sessionId));
+        $this->assertNotSame($originalRemember, $user->refresh()->remember_token);
+        $this->assertTrue($this->app->make(UserSessionService::class)->isRevoked($sessionId));
+
+        // Simulate the revoked browser coming back with the same session id.
+        $this->withSession([])->flushSession();
+        $store = $this->app->make('session.store');
+        $store->setId($sessionId);
+        $this->assertSame($sessionId, $store->getId());
+        $store->start();
+        $store->put('login_web_' . sha1('Illuminate\Auth\SessionGuard'), $user->id);
+
+        $request = \Illuminate\Http\Request::create('/api/client/account/sessions', 'GET');
+        $request->setLaravelSession($store);
+        $request->setUserResolver(fn () => $user);
+
+        $this->assertFalse(
+            $this->app->make(UserSessionService::class)->touchFromRequest($request),
+            'touchFromRequest must reject a previously revoked session id.'
+        );
+        $this->assertDatabaseMissing('user_sessions', ['session_id' => $sessionId]);
+    }
+
+    public function testRevokeOthersInvalidatesRememberTokenOnce(): void
+    {
+        $user = User::factory()->create([
+            'remember_token' => 'original-remember-token-value-here-xx',
+        ]);
+        UserSession::factory()->for($user)->create(['session_id' => 'keep-me']);
+        UserSession::factory()->for($user)->create();
+        UserSession::factory()->for($user)->create();
+
+        $this->app->make(UserSessionService::class)->revokeOthers($user, 'keep-me');
+
+        $this->assertNotSame('original-remember-token-value-here-xx', $user->refresh()->remember_token);
+        $this->assertDatabaseHas('user_sessions', ['session_id' => 'keep-me']);
+        $this->assertSame(1, $user->sessions()->count());
     }
 
     /**

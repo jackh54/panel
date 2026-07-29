@@ -19,6 +19,15 @@ interface SSHKey extends Model {
     createdAt: Date;
 }
 
+interface Passkey extends Model {
+    uuid: string;
+    name: string;
+    aaguid: string | null;
+    transports: string[] | null;
+    lastUsedAt: Date | null;
+    createdAt: Date;
+}
+
 interface ActivityLog extends Model<'actor'> {
     id: string;
     batch: UUID | null;

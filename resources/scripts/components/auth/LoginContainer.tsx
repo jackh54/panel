@@ -1,6 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { Link, RouteComponentProps } from 'react-router-dom';
 import login from '@/api/auth/login';
+import { loginWithPasskey } from '@/api/auth/loginPasskey';
 import LoginFormContainer from '@/components/auth/LoginFormContainer';
 import { useStoreState } from 'easy-peasy';
 import { Formik, FormikHelpers } from 'formik';
@@ -19,6 +20,8 @@ interface Values {
 const LoginContainer = ({ history }: RouteComponentProps) => {
     const ref = useRef<TurnstileHandle>(null);
     const [token, setToken] = useState('');
+    const [passkeySupported, setPasskeySupported] = useState(false);
+    const [passkeyLoading, setPasskeyLoading] = useState(false);
 
     const { clearFlashes, clearAndAddHttpError } = useFlash();
     const captcha = useStoreState((state) => state.settings.data!.turnstile || state.settings.data!.recaptcha);
@@ -27,6 +30,7 @@ const LoginContainer = ({ history }: RouteComponentProps) => {
 
     useEffect(() => {
         clearFlashes();
+        setPasskeySupported(typeof window !== 'undefined' && !!window.PublicKeyCredential);
     }, []);
 
     const onSubmit = (values: Values, { setSubmitting }: FormikHelpers<Values>) => {
@@ -63,6 +67,22 @@ const LoginContainer = ({ history }: RouteComponentProps) => {
             });
     };
 
+    const onPasskeyLogin = () => {
+        clearFlashes();
+        setPasskeyLoading(true);
+
+        loginWithPasskey()
+            .then((response) => {
+                // @ts-expect-error this is valid
+                window.location = response.intended || '/';
+            })
+            .catch((error) => {
+                console.error(error);
+                setPasskeyLoading(false);
+                clearAndAddHttpError({ error });
+            });
+    };
+
     return (
         <Formik
             onSubmit={onSubmit}
@@ -73,7 +93,7 @@ const LoginContainer = ({ history }: RouteComponentProps) => {
             })}
         >
             {({ isSubmitting, setSubmitting, submitForm }) => (
-                <LoginFormContainer title={'Sign in to your account'}>
+                <LoginFormContainer title={'Sign in to your account'} css={tw`w-full flex`}>
                     <Field type={'text'} label={'Username or Email'} name={'username'} disabled={isSubmitting} />
                     <div css={tw`mt-5`}>
                         <Field type={'password'} label={'Password'} name={'password'} disabled={isSubmitting} />
@@ -83,6 +103,20 @@ const LoginContainer = ({ history }: RouteComponentProps) => {
                             Login
                         </Button>
                     </div>
+                    {passkeySupported && (
+                        <div css={tw`mt-4`}>
+                            <Button
+                                type={'button'}
+                                size={'xlarge'}
+                                isSecondary
+                                isLoading={passkeyLoading}
+                                disabled={isSubmitting || passkeyLoading}
+                                onClick={onPasskeyLogin}
+                            >
+                                Sign in with a passkey
+                            </Button>
+                        </div>
+                    )}
                     {captchaEnabled && (
                         <TurnstileWidget
                             ref={ref}
@@ -105,7 +139,7 @@ const LoginContainer = ({ history }: RouteComponentProps) => {
                     <div css={tw`mt-5 text-center`}>
                         <Link
                             to={'/auth/password'}
-                            css={tw`text-xs text-neutral-400 tracking-wide no-underline hover:text-neutral-200`}
+                            css={tw`text-xs text-neutral-500 tracking-wide no-underline uppercase hover:text-neutral-600`}
                         >
                             Forgot password?
                         </Link>

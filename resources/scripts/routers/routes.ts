@@ -11,6 +11,7 @@ import SettingsContainer from '@/components/server/settings/SettingsContainer';
 import AccountOverviewContainer from '@/components/dashboard/AccountOverviewContainer';
 import AccountApiContainer from '@/components/dashboard/AccountApiContainer';
 import AccountSSHContainer from '@/components/dashboard/ssh/AccountSSHContainer';
+import AccountPasskeysContainer from '@/components/dashboard/AccountPasskeysContainer';
 import AccountSessionsContainer from '@/components/dashboard/AccountSessionsContainer';
 import ActivityLogContainer from '@/components/dashboard/activity/ActivityLogContainer';
 import ServerActivityLogContainer from '@/components/server/ServerActivityLogContainer';
@@ -60,6 +61,11 @@ export default {
             path: '/ssh',
             name: 'SSH Keys',
             component: AccountSSHContainer,
+        },
+        {
+            path: '/passkeys',
+            name: 'Passkeys',
+            component: AccountPasskeysContainer,
         },
         {
             path: '/devices',
