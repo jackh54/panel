@@ -12,6 +12,17 @@ export default class Transformers {
         };
     };
 
+    static toPasskey = (data: Record<any, any>): Models.Passkey => {
+        return {
+            uuid: data.uuid,
+            name: data.name,
+            aaguid: data.aaguid ?? null,
+            transports: data.transports ?? null,
+            lastUsedAt: data.last_used_at ? new Date(data.last_used_at) : null,
+            createdAt: new Date(data.created_at),
+        };
+    };
+
     static toUser = ({ attributes }: FractalResponseData): Models.User => {
         return {
             uuid: attributes.uuid,

@@ -46,6 +46,13 @@ Route::prefix('/account')->middleware(AccountSubject::class)->group(function () 
         Route::post('/remove', [Client\SSHKeyController::class, 'delete']);
     });
 
+    Route::prefix('/passkeys')->withoutMiddleware(RequireTwoFactorAuthentication::class)->group(function () {
+        Route::get('/', [Client\PasskeyController::class, 'index']);
+        Route::get('/options', [Client\PasskeyController::class, 'options']);
+        Route::post('/', [Client\PasskeyController::class, 'store']);
+        Route::delete('/{uuid}', [Client\PasskeyController::class, 'delete']);
+    });
+
     Route::prefix('/sessions')->group(function () {
         Route::get('/', [Client\SessionController::class, 'index']);
         Route::delete('/other', [Client\SessionController::class, 'deleteOthers']);
