@@ -10,8 +10,8 @@ use Illuminate\Http\JsonResponse;
 use Pterodactyl\Facades\Activity;
 use Illuminate\Contracts\View\View;
 use Pterodactyl\Exceptions\DisplayException;
-use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Pterodactyl\Services\Users\UserSessionService;
+use Illuminate\Database\Eloquent\ModelNotFoundException;
 
 class LoginController extends AbstractLoginController
 {
@@ -28,7 +28,7 @@ class LoginController extends AbstractLoginController
     /**
      * Handle a login request to the application.
      *
-     * @throws \Pterodactyl\Exceptions\DisplayException
+     * @throws DisplayException
      * @throws \Illuminate\Validation\ValidationException
      */
     public function login(Request $request): JsonResponse

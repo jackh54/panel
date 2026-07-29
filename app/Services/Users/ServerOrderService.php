@@ -2,9 +2,9 @@
 
 namespace Pterodactyl\Services\Users;
 
-use Illuminate\Support\Facades\DB;
 use Pterodactyl\Models\User;
 use Pterodactyl\Models\Server;
+use Illuminate\Support\Facades\DB;
 use Pterodactyl\Models\UserServerOrder;
 use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
 

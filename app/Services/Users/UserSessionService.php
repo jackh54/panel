@@ -6,10 +6,10 @@ use Illuminate\Support\Str;
 use Illuminate\Http\Request;
 use Pterodactyl\Models\User;
 use Pterodactyl\Models\ApiKey;
-use Illuminate\Support\Facades\DB;
-use Pterodactyl\Models\UserSession;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
+use Pterodactyl\Models\UserSession;
 use Illuminate\Session\SessionManager;
 
 class UserSessionService
