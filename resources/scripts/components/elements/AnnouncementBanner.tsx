@@ -46,10 +46,7 @@ export default () => {
     return (
         <ContentContainer css={tw`mt-4`}>
             <div
-                css={[
-                    tw`flex items-start gap-3 rounded-xl border px-4 py-3 text-sm shadow-panel-sm`,
-                    typeStyles[type],
-                ]}
+                css={[tw`flex items-start gap-3 rounded-xl border px-4 py-3 text-sm shadow-panel-sm`, typeStyles[type]]}
                 role={'status'}
             >
                 <FontAwesomeIcon

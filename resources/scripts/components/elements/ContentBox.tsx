@@ -18,7 +18,12 @@ const ContentBox = ({ title, borderColor, showFlashes, showLoadingOverlay, child
         {showFlashes && (
             <FlashMessageRender byKey={typeof showFlashes === 'string' ? showFlashes : undefined} css={tw`mb-4`} />
         )}
-        <div css={[tw`bg-neutral-700/90 p-4 rounded-xl border border-neutral-600/50 shadow-panel-sm relative`, !!borderColor && tw`border-t-4`]}>
+        <div
+            css={[
+                tw`bg-neutral-700/90 p-4 rounded-xl border border-neutral-600/50 shadow-panel-sm relative`,
+                !!borderColor && tw`border-t-4`,
+            ]}
+        >
             <SpinnerOverlay visible={showLoadingOverlay || false} />
             {children}
         </div>

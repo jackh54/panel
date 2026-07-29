@@ -83,8 +83,8 @@ export default () => {
                     >
                         This will sign out{' '}
                         <span css={tw`font-semibold`}>{describeUserAgent(revokeTarget?.userAgent || null)}</span>
-                        {revokeTarget?.ipAddress ? ` (${revokeTarget.ipAddress})` : ''}. That device will need to sign in
-                        again.
+                        {revokeTarget?.ipAddress ? ` (${revokeTarget.ipAddress})` : ''}. That device will need to sign
+                        in again.
                     </Dialog.Confirm>
                     <Dialog.Confirm
                         title={'Sign Out Other Devices'}
