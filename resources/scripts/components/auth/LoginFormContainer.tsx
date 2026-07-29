@@ -34,23 +34,21 @@ const LoginFormContainer = forwardRef<HTMLFormElement, Props>(({ title, children
                 <h1 css={tw`text-3xl md:text-4xl font-header font-medium text-neutral-50 tracking-tight m-0`}>
                     {name}
                 </h1>
-                {title && (
-                    <p css={tw`mt-2 mb-0 text-sm text-neutral-400 tracking-wide`}>{title}</p>
-                )}
+                {title && <p css={tw`mt-2 mb-0 text-sm text-neutral-400 tracking-wide`}>{title}</p>}
             </div>
 
             <FlashMessageRender css={tw`mb-4`} />
 
             <Form {...props} ref={ref}>
-                <div
-                    css={tw`w-full bg-neutral-700 border border-neutral-600 shadow-panel rounded-xl p-6 md:p-8`}
-                >
+                <div css={tw`w-full bg-neutral-700 border border-neutral-600 shadow-panel rounded-xl p-6 md:p-8`}>
                     {children}
                 </div>
             </Form>
 
             {links.length > 0 && (
-                <p css={tw`text-center text-neutral-400 text-xs mt-5 mb-0 flex flex-wrap justify-center gap-x-4 gap-y-1`}>
+                <p
+                    css={tw`text-center text-neutral-400 text-xs mt-5 mb-0 flex flex-wrap justify-center gap-x-4 gap-y-1`}
+                >
                     {links.map((link) => (
                         <a
                             key={link.url + link.label}

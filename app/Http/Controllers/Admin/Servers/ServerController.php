@@ -56,16 +56,16 @@ class ServerController extends Controller
 
         foreach ($servers as $server) {
             if (!is_null($server->transfer)) {
-                $skipped++;
+                ++$skipped;
                 continue;
             }
 
             try {
                 $this->suspensionService->toggle($server, $action);
-                $ok++;
+                ++$ok;
             } catch (\Throwable $exception) {
                 report($exception);
-                $failed++;
+                ++$failed;
             }
         }
 

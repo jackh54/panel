@@ -109,7 +109,11 @@ export default ({ server, className, draggable, isDragging, isDropTarget, onDrag
                 event.dataTransfer.effectAllowed = 'move';
                 event.dataTransfer.setData('text/plain', server.uuid);
                 const target = event.currentTarget as HTMLElement;
-                event.dataTransfer.setDragImage(target, Math.min(event.nativeEvent.offsetX, target.offsetWidth / 2), 24);
+                event.dataTransfer.setDragImage(
+                    target,
+                    Math.min(event.nativeEvent.offsetX, target.offsetWidth / 2),
+                    24
+                );
                 onDragStart?.();
             }}
             onDrag={() => {

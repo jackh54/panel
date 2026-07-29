@@ -9,6 +9,7 @@ use Illuminate\Http\JsonResponse;
 use Pterodactyl\Facades\Activity;
 use Illuminate\Support\Facades\RateLimiter;
 use Pterodactyl\Services\Users\UserUpdateService;
+use Pterodactyl\Services\Users\UserSessionService;
 use Pterodactyl\Transformers\Api\Client\AccountTransformer;
 use Pterodactyl\Http\Requests\Api\Client\Account\UpdateEmailRequest;
 use Pterodactyl\Http\Requests\Api\Client\Account\UpdatePasswordRequest;
@@ -24,8 +25,11 @@ class AccountController extends ClientApiController
     /**
      * AccountController constructor.
      */
-    public function __construct(private AuthManager $manager, private UserUpdateService $updateService)
-    {
+    public function __construct(
+        private AuthManager $manager,
+        private UserUpdateService $updateService,
+        private UserSessionService $sessionService,
+    ) {
         parent::__construct();
     }
 
@@ -85,6 +89,12 @@ class AccountController extends ClientApiController
         // This method doesn't exist in the stateless Sanctum world.
         if (method_exists($guard, 'logoutOtherDevices')) { // @phpstan-ignore function.alreadyNarrowedType
             $guard->logoutOtherDevices($request->input('password'));
+        }
+
+        if ($request->hasSession()) {
+            $this->sessionService->revokeOthers($user, $request->session()->getId());
+        } else {
+            $this->sessionService->revokeAll($user);
         }
 
         return new JsonResponse([], Response::HTTP_NO_CONTENT);

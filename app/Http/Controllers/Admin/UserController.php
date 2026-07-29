@@ -13,16 +13,16 @@ use Spatie\QueryBuilder\QueryBuilder;
 use Illuminate\View\Factory as ViewFactory;
 use Pterodactyl\Exceptions\DisplayException;
 use Pterodactyl\Http\Controllers\Controller;
+use Pterodactyl\Notifications\AdminUserMessage;
 use Illuminate\Contracts\Translation\Translator;
 use Pterodactyl\Services\Users\UserUpdateService;
 use Pterodactyl\Traits\Helpers\AvailableLanguages;
 use Pterodactyl\Services\Users\UserCreationService;
 use Pterodactyl\Services\Users\UserDeletionService;
-use Pterodactyl\Services\Users\UserSuspensionService;
-use Pterodactyl\Notifications\AdminUserMessage;
-use Pterodactyl\Http\Requests\Admin\BulkUserFormRequest;
 use Pterodactyl\Http\Requests\Admin\UserFormRequest;
+use Pterodactyl\Services\Users\UserSuspensionService;
 use Pterodactyl\Http\Requests\Admin\NewUserFormRequest;
+use Pterodactyl\Http\Requests\Admin\BulkUserFormRequest;
 use Pterodactyl\Contracts\Repository\UserRepositoryInterface;
 
 class UserController extends Controller
@@ -197,7 +197,7 @@ class UserController extends Controller
 
         foreach ($users as $user) {
             if ($action !== 'email' && $request->user()->is($user)) {
-                $skipped++;
+                ++$skipped;
                 continue;
             }
 
@@ -212,10 +212,10 @@ class UserController extends Controller
                         (string) $request->input('body'),
                     ));
                 }
-                $ok++;
+                ++$ok;
             } catch (\Throwable $exception) {
                 report($exception);
-                $failed++;
+                ++$failed;
             }
         }
 

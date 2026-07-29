@@ -29,9 +29,12 @@ export default () => {
     const [dropTargetUuid, setDropTargetUuid] = useState<string | null>(null);
     const [savingOrder, setSavingOrder] = useState(false);
 
-    const { data: servers, error, mutate } = useSWR<PaginatedResult<Server>>(
-        ['/api/client/servers', showOnlyAdmin && rootAdmin, page],
-        () => getServers({ page, type: showOnlyAdmin && rootAdmin ? 'admin' : undefined })
+    const {
+        data: servers,
+        error,
+        mutate,
+    } = useSWR<PaginatedResult<Server>>(['/api/client/servers', showOnlyAdmin && rootAdmin, page], () =>
+        getServers({ page, type: showOnlyAdmin && rootAdmin ? 'admin' : undefined })
     );
 
     useEffect(() => {

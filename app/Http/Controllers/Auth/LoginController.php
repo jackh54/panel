@@ -10,6 +10,7 @@ use Illuminate\Http\JsonResponse;
 use Pterodactyl\Facades\Activity;
 use Illuminate\Contracts\View\View;
 use Pterodactyl\Exceptions\DisplayException;
+use Pterodactyl\Services\Users\UserSessionService;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 
 class LoginController extends AbstractLoginController
@@ -27,7 +28,7 @@ class LoginController extends AbstractLoginController
     /**
      * Handle a login request to the application.
      *
-     * @throws \Pterodactyl\Exceptions\DisplayException
+     * @throws DisplayException
      * @throws \Illuminate\Validation\ValidationException
      */
     public function login(Request $request): JsonResponse
@@ -76,5 +77,17 @@ class LoginController extends AbstractLoginController
                 'confirmation_token' => $token,
             ],
         ]);
+    }
+
+    /**
+     * Log the user out of the application and drop the tracked device session.
+     */
+    public function logout(Request $request)
+    {
+        if ($request->hasSession()) {
+            app(UserSessionService::class)->forgetBySessionId($request->session()->getId());
+        }
+
+        return parent::logout($request);
     }
 }
