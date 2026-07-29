@@ -56,6 +56,8 @@ use Pterodactyl\Notifications\SendPasswordReset as ResetPasswordNotification;
  * @property int|null $servers_count
  * @property \Illuminate\Database\Eloquent\Collection|\Pterodactyl\Models\UserSSHKey[] $sshKeys
  * @property int|null $ssh_keys_count
+ * @property \Illuminate\Database\Eloquent\Collection|\Pterodactyl\Models\UserSession[] $sessions
+ * @property int|null $sessions_count
  * @property \Illuminate\Database\Eloquent\Collection|\Pterodactyl\Models\ApiKey[] $tokens
  * @property int|null $tokens_count
  *
@@ -274,6 +276,14 @@ class User extends Model implements
     public function sshKeys(): HasMany
     {
         return $this->hasMany(UserSSHKey::class);
+    }
+
+    /**
+     * @return \Illuminate\Database\Eloquent\Relations\HasMany<\Pterodactyl\Models\UserSession, $this>
+     */
+    public function sessions(): HasMany
+    {
+        return $this->hasMany(UserSession::class);
     }
 
     /**

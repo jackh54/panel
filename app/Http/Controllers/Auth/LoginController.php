@@ -11,6 +11,7 @@ use Pterodactyl\Facades\Activity;
 use Illuminate\Contracts\View\View;
 use Pterodactyl\Exceptions\DisplayException;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
+use Pterodactyl\Services\Users\UserSessionService;
 
 class LoginController extends AbstractLoginController
 {
@@ -76,5 +77,17 @@ class LoginController extends AbstractLoginController
                 'confirmation_token' => $token,
             ],
         ]);
+    }
+
+    /**
+     * Log the user out of the application and drop the tracked device session.
+     */
+    public function logout(Request $request)
+    {
+        if ($request->hasSession()) {
+            app(UserSessionService::class)->forgetBySessionId($request->session()->getId());
+        }
+
+        return parent::logout($request);
     }
 }

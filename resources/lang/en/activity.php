@@ -40,6 +40,10 @@ return [
             'create' => 'Enabled two-factor auth',
             'delete' => 'Disabled two-factor auth',
         ],
+        'session' => [
+            'revoke' => 'Revoked a device session from :ip_address',
+            'revoke-others' => 'Signed out of :count other device session(s)',
+        ],
     ],
     'server' => [
         'reinstall' => 'Reinstalled server',

@@ -35,6 +35,7 @@ use Pterodactyl\Http\Middleware\Api\Client\SubstituteClientBindings;
 use Illuminate\Foundation\Http\Middleware\PreventRequestsDuringMaintenance;
 use Pterodactyl\Http\Middleware\EnsureAccountNotSuspended;
 use Pterodactyl\Http\Middleware\Api\Application\AuthenticateApplicationUser;
+use Pterodactyl\Http\Middleware\TrackUserSession;
 
 class Kernel extends HttpKernel
 {
@@ -74,6 +75,7 @@ class Kernel extends HttpKernel
             EnsureAccountNotSuspended::class,
             IsValidJson::class,
             TrackAPIKey::class,
+            TrackUserSession::class,
             RequireTwoFactorAuthentication::class,
             AuthenticateIPAccess::class,
         ],

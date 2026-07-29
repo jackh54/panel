@@ -14,8 +14,10 @@ use Pterodactyl\Services\Servers\SuspensionService;
 
 class UserSuspensionService
 {
-    public function __construct(private SuspensionService $suspensionService)
-    {
+    public function __construct(
+        private SuspensionService $suspensionService,
+        private UserSessionService $userSessionService,
+    ) {
     }
 
     /**
@@ -100,10 +102,20 @@ class UserSuspensionService
     }
 
     /**
-     * Drop database-backed sessions so the user is forced to log in again.
+     * Drop tracked browser sessions (and Laravel session store entries) so the
+     * user is forced to log in again.
      */
     private function forgetSessions(User $user): void
     {
+        try {
+            $this->userSessionService->revokeAll($user);
+        } catch (\Throwable $exception) {
+            Log::warning('Failed to clear tracked sessions during account suspension.', [
+                'user_id' => $user->id,
+                'exception' => $exception->getMessage(),
+            ]);
+        }
+
         if (config('session.driver') !== 'database') {
             return;
         }

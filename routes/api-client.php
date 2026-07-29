@@ -45,6 +45,12 @@ Route::prefix('/account')->middleware(AccountSubject::class)->group(function () 
         Route::post('/', [Client\SSHKeyController::class, 'store']);
         Route::post('/remove', [Client\SSHKeyController::class, 'delete']);
     });
+
+    Route::prefix('/sessions')->group(function () {
+        Route::get('/', [Client\SessionController::class, 'index']);
+        Route::delete('/other', [Client\SessionController::class, 'deleteOthers']);
+        Route::delete('/{uuid}', [Client\SessionController::class, 'delete']);
+    });
 });
 
 /*
