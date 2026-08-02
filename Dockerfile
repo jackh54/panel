@@ -2,7 +2,12 @@
 # Build the assets that are needed for the frontend. This build stage is then discarded
 # since we won't need NodeJS anymore in the future. This Docker image ships a final production
 # level distribution of Pterodactyl.
-FROM --platform=$TARGETOS/$TARGETARCH node:22-alpine
+#
+# This always runs on the native build platform ($BUILDPLATFORM) rather than the
+# target platform. The frontend output is just static JS/CSS, so it is identical
+# across architectures, and building natively avoids running NodeJS under QEMU
+# emulation (which crashes with "Illegal instruction" on arm64 targets).
+FROM --platform=$BUILDPLATFORM node:22-alpine
 WORKDIR /app
 COPY . ./
 RUN yarn install --frozen-lockfile \
