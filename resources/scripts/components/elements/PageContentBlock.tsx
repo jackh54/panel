@@ -32,9 +32,9 @@ const PageContentBlock: React.FC<PageContentBlockProps> = ({ title, showFlashKey
                     {children}
                 </ContentContainer>
                 <ContentContainer css={tw`mb-4`}>
-                    <p css={tw`text-center text-neutral-500 text-xs`}>
+                    <div css={tw`text-center text-neutral-500 text-xs`}>
                         {links.length > 0 && (
-                            <>
+                            <p css={tw`m-0`}>
                                 {links.map((link, index) => (
                                     <React.Fragment key={link.url + link.label}>
                                         {index > 0 && <span css={tw`mx-2 text-neutral-600`}>·</span>}
@@ -48,19 +48,20 @@ const PageContentBlock: React.FC<PageContentBlockProps> = ({ title, showFlashKey
                                         </a>
                                     </React.Fragment>
                                 ))}
-                                <span css={tw`mx-2 text-neutral-600`}>·</span>
-                            </>
+                            </p>
                         )}
-                        <a
-                            rel={'noopener nofollow noreferrer'}
-                            href={companyUrl}
-                            target={'_blank'}
-                            css={tw`no-underline text-neutral-500 hover:text-neutral-300`}
-                        >
-                            {company}
-                        </a>
-                        &nbsp;&copy; {new Date().getFullYear()}
-                    </p>
+                        <p css={[tw`m-0`, links.length > 0 && tw`mt-2`]}>
+                            <a
+                                rel={'noopener nofollow noreferrer'}
+                                href={companyUrl}
+                                target={'_blank'}
+                                css={tw`no-underline text-neutral-500 hover:text-neutral-300`}
+                            >
+                                {company}
+                            </a>
+                            &nbsp;&copy; {new Date().getFullYear()}
+                        </p>
+                    </div>
                 </ContentContainer>
             </>
         </CSSTransition>

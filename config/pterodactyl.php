@@ -92,7 +92,10 @@ return [
 
     'cdn' => [
         'cache_time' => 60,
+        // Official CDN still used for Wings / community links.
         'url' => 'https://cdn.pterodactyl.io/releases/latest.json',
+        // Panel version checks against this fork's GitHub releases.
+        'panel_repo' => env('PANEL_GITHUB_REPO', 'jackh54/panel'),
     ],
 
     /*

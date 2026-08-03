@@ -25,11 +25,35 @@ class SoftwareVersionService
     }
 
     /**
-     * Get the latest version of the panel from the CDN servers.
+     * Get the latest version of the panel from GitHub releases.
      */
     public function getPanel(): string
     {
         return Arr::get(self::$result, 'panel') ?? 'error';
+    }
+
+    /**
+     * Get the URL to the latest panel release page.
+     */
+    public function getPanelUrl(): string
+    {
+        $fallback = sprintf(
+            'https://github.com/%s/releases/latest',
+            config('pterodactyl.cdn.panel_repo', 'jackh54/panel')
+        );
+
+        return Arr::get(self::$result, 'panel_url') ?? $fallback;
+    }
+
+    /**
+     * Get the URL to the panel GitHub repository.
+     */
+    public function getGitHub(): string
+    {
+        return sprintf(
+            'https://github.com/%s',
+            config('pterodactyl.cdn.panel_repo', 'jackh54/panel')
+        );
     }
 
     /**
@@ -65,7 +89,12 @@ class SoftwareVersionService
             return true;
         }
 
-        return version_compare(config('app.version'), $this->getPanel()) >= 0;
+        $latest = $this->getPanel();
+        if ($latest === 'error') {
+            return true;
+        }
+
+        return version_compare(config('app.version'), $latest) >= 0;
     }
 
     /**
@@ -81,22 +110,72 @@ class SoftwareVersionService
     }
 
     /**
-     * Keeps the versioning cache up-to-date with the latest results from the CDN.
+     * Keeps the versioning cache up-to-date with the latest results from GitHub / CDN.
      */
     protected function cacheVersionData(): array
     {
         return $this->cache->remember(self::VERSION_CACHE_KEY, CarbonImmutable::now()->addMinutes(config('pterodactyl.cdn.cache_time', 60)), function () {
-            try {
-                $response = $this->client->request('GET', config('pterodactyl.cdn.url'));
+            $data = $this->fetchCdnData();
+            $panel = $this->fetchPanelReleaseData();
 
-                if ($response->getStatusCode() === 200) {
-                    return json_decode($response->getBody(), true);
-                }
+            return array_merge($data, $panel);
+        });
+    }
 
+    /**
+     * Fetch Wings / community metadata from the official CDN.
+     */
+    protected function fetchCdnData(): array
+    {
+        try {
+            $response = $this->client->request('GET', config('pterodactyl.cdn.url'));
+
+            if ($response->getStatusCode() === 200) {
+                $data = json_decode($response->getBody(), true) ?? [];
+                // Panel version comes from this fork's GitHub releases, not upstream CDN.
+                unset($data['panel']);
+
+                return $data;
+            }
+
+            throw new CdnVersionFetchingException();
+        } catch (\Exception) {
+            return [];
+        }
+    }
+
+    /**
+     * Fetch the latest panel version from this fork's GitHub releases.
+     */
+    protected function fetchPanelReleaseData(): array
+    {
+        $repo = config('pterodactyl.cdn.panel_repo', 'jackh54/panel');
+
+        try {
+            $response = $this->client->request('GET', "https://api.github.com/repos/{$repo}/releases/latest", [
+                'headers' => [
+                    'Accept' => 'application/vnd.github+json',
+                    'User-Agent' => config('app.name', 'PandaScript') . '-Panel',
+                ],
+            ]);
+
+            if ($response->getStatusCode() !== 200) {
                 throw new CdnVersionFetchingException();
-            } catch (\Exception) {
+            }
+
+            $json = json_decode($response->getBody(), true) ?? [];
+            $tag = Arr::get($json, 'tag_name');
+
+            if (!$tag) {
                 return [];
             }
-        });
+
+            return [
+                'panel' => ltrim($tag, 'vV'),
+                'panel_url' => Arr::get($json, 'html_url') ?? "https://github.com/{$repo}/releases/latest",
+            ];
+        } catch (\Exception) {
+            return [];
+        }
     }
 }
