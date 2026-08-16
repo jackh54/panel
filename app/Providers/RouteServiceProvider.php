@@ -36,6 +36,11 @@ class RouteServiceProvider extends ServiceProvider
         Route::model('database', Database::class);
 
         $this->routes(function () {
+            // Register before the SPA catch-all so /hooks/* is never swallowed by /{react}.
+            Route::middleware('throttle:schedule.webhook')
+                ->prefix('/hooks')
+                ->group(base_path('routes/hooks.php'));
+
             Route::middleware('web')->group(function () {
                 Route::middleware(['auth.session', 'account.not-suspended', RequireTwoFactorAuthentication::class])
                     ->group(base_path('routes/base.php'));
@@ -63,10 +68,6 @@ class RouteServiceProvider extends ServiceProvider
                 ->prefix('/api/remote')
                 ->scopeBindings()
                 ->group(base_path('routes/api-remote.php'));
-
-            Route::middleware('throttle:schedule.webhook')
-                ->prefix('/hooks')
-                ->group(base_path('routes/hooks.php'));
         });
     }
 

@@ -50,7 +50,16 @@ class ScheduleWebhookTest extends ClientApiIntegrationTestCase
         Task::factory()->create(['schedule_id' => $schedule->id, 'sequence_id' => 1]);
 
         $this->getJson('/hooks/schedule/' . $schedule->webhook_token)
-            ->assertStatus(Response::HTTP_ACCEPTED);
+            ->assertStatus(Response::HTTP_ACCEPTED)
+            ->assertExactJson([]);
+    }
+
+    public function testWebhookGetIsNotCapturedBySpaCatchAll()
+    {
+        // Unknown token must hit the webhook controller (JSON 404), not the SPA catch-all (HTML 200).
+        $this->getJson('/hooks/schedule/' . str_repeat('a', 64))
+            ->assertNotFound()
+            ->assertJsonStructure(['errors']);
     }
 
     public function testUnknownWebhookTokenReturnsNotFound()
