@@ -1,7 +1,7 @@
 import React from 'react';
 import { Schedule } from '@/api/server/schedules/getServerSchedules';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faCalendarAlt } from '@fortawesome/free-solid-svg-icons';
+import { faCalendarAlt, faLink } from '@fortawesome/free-solid-svg-icons';
 import { format } from 'date-fns';
 import tw from 'twin.macro';
 import ScheduleCronRow from '@/components/server/schedules/ScheduleCronRow';
@@ -9,7 +9,7 @@ import ScheduleCronRow from '@/components/server/schedules/ScheduleCronRow';
 export default ({ schedule }: { schedule: Schedule }) => (
     <>
         <div css={tw`hidden md:block`}>
-            <FontAwesomeIcon icon={faCalendarAlt} fixedWidth />
+            <FontAwesomeIcon icon={schedule.trigger === 'webhook' ? faLink : faCalendarAlt} fixedWidth />
         </div>
         <div css={tw`flex-1 md:ml-4`}>
             <p>{schedule.name}</p>
@@ -27,7 +27,14 @@ export default ({ schedule }: { schedule: Schedule }) => (
                 {schedule.isActive ? 'Active' : 'Inactive'}
             </p>
         </div>
-        <ScheduleCronRow cron={schedule.cron} css={tw`mx-auto sm:mx-8 w-full sm:w-auto mt-4 sm:mt-0`} />
+        {schedule.trigger === 'webhook' ? (
+            <div css={tw`mx-auto sm:mx-8 w-full sm:w-auto mt-4 sm:mt-0 text-center`}>
+                <p css={tw`font-medium`}>Webhook</p>
+                <p css={tw`text-2xs text-neutral-500 uppercase`}>Trigger</p>
+            </div>
+        ) : (
+            <ScheduleCronRow cron={schedule.cron} css={tw`mx-auto sm:mx-8 w-full sm:w-auto mt-4 sm:mt-0`} />
+        )}
         <div>
             <p
                 css={[

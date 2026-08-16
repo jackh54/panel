@@ -35,7 +35,7 @@ class ProcessScheduleService
         $this->connection->transaction(function () use ($schedule, $task) {
             $schedule->forceFill([
                 'is_processing' => true,
-                'next_run_at' => $schedule->getNextRunDate(),
+                'next_run_at' => $schedule->isWebhook() ? $schedule->next_run_at : $schedule->getNextRunDate(),
             ])->saveOrFail();
 
             $task->update(['is_queued' => true]);

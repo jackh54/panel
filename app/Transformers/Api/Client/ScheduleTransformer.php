@@ -25,6 +25,8 @@ class ScheduleTransformer extends BaseClientTransformer
         return [
             'id' => $model->id,
             'name' => $model->name,
+            'trigger' => $model->trigger,
+            'webhook_url' => $model->webhookUrl(),
             'cron' => [
                 'day_of_week' => $model->cron_day_of_week,
                 'day_of_month' => $model->cron_day_of_month,
