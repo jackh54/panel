@@ -172,11 +172,7 @@ export default () => {
                                     GET or POST this URL to run the schedule. Treat it like a password.
                                 </p>
                                 <Can action={'schedule.update'}>
-                                    <Button.Text
-                                        className={'mt-3'}
-                                        disabled={isRotating}
-                                        onClick={rotateWebhookUrl}
-                                    >
+                                    <Button.Text className={'mt-3'} disabled={isRotating} onClick={rotateWebhookUrl}>
                                         {isRotating ? 'Rotating...' : 'Rotate URL'}
                                     </Button.Text>
                                 </Can>
