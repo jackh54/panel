@@ -13,6 +13,8 @@ import { Button } from '@/components/elements/button/index';
 import ModalContext from '@/context/ModalContext';
 import asModal from '@/hoc/asModal';
 import Switch from '@/components/elements/Switch';
+import Select from '@/components/elements/Select';
+import Label from '@/components/elements/Label';
 import ScheduleCheatsheetCards from '@/components/server/schedules/ScheduleCheatsheetCards';
 
 interface Props {
@@ -21,6 +23,7 @@ interface Props {
 
 interface Values {
     name: string;
+    trigger: 'cron' | 'webhook';
     dayOfWeek: string;
     month: string;
     dayOfMonth: string;
@@ -49,6 +52,7 @@ const EditScheduleModal = ({ schedule }: Props) => {
         createOrUpdateSchedule(uuid, {
             id: schedule?.id,
             name: values.name,
+            trigger: values.trigger,
             cron: {
                 minute: values.minute,
                 hour: values.hour,
@@ -78,6 +82,7 @@ const EditScheduleModal = ({ schedule }: Props) => {
             initialValues={
                 {
                     name: schedule?.name || '',
+                    trigger: schedule?.trigger || 'cron',
                     minute: schedule?.cron.minute || '*/5',
                     hour: schedule?.cron.hour || '*',
                     dayOfMonth: schedule?.cron.dayOfMonth || '*',
@@ -88,7 +93,7 @@ const EditScheduleModal = ({ schedule }: Props) => {
                 } as Values
             }
         >
-            {({ isSubmitting }) => (
+            {({ isSubmitting, values, handleChange }) => (
                 <Form>
                     <h3 css={tw`text-2xl mb-6`}>{schedule ? 'Edit schedule' : 'Create new schedule'}</h3>
                     <FlashMessageRender byKey={'schedule:edit'} css={tw`mb-6`} />
@@ -97,31 +102,51 @@ const EditScheduleModal = ({ schedule }: Props) => {
                         label={'Schedule name'}
                         description={'A human readable identifier for this schedule.'}
                     />
-                    <div css={tw`grid grid-cols-2 sm:grid-cols-5 gap-4 mt-6`}>
-                        <Field name={'minute'} label={'Minute'} />
-                        <Field name={'hour'} label={'Hour'} />
-                        <Field name={'dayOfMonth'} label={'Day of month'} />
-                        <Field name={'month'} label={'Month'} />
-                        <Field name={'dayOfWeek'} label={'Day of week'} />
+                    <div css={tw`mt-6`}>
+                        <Label htmlFor={'trigger'}>Trigger</Label>
+                        <Select id={'trigger'} name={'trigger'} value={values.trigger} onChange={handleChange}>
+                            <option value={'cron'}>Cron</option>
+                            <option value={'webhook'}>Webhook</option>
+                        </Select>
+                        <p css={tw`text-neutral-400 text-xs mt-2`}>
+                            Cron runs on a timer. Webhook runs the same tasks when the secret URL is requested.
+                        </p>
                     </div>
-                    <p css={tw`text-neutral-400 text-xs mt-2`}>
-                        The schedule system supports the use of Cronjob syntax when defining when tasks should begin
-                        running. Use the fields above to specify when these tasks should begin running.
-                    </p>
-                    <div css={tw`mt-6 bg-neutral-700 border border-neutral-800 shadow-inner p-4 rounded`}>
-                        <Switch
-                            name={'show_cheatsheet'}
-                            description={'Show the cron cheatsheet for some examples.'}
-                            label={'Show Cheatsheet'}
-                            defaultChecked={showCheatsheet}
-                            onChange={() => setShowCheetsheet((s) => !s)}
-                        />
-                        {showCheatsheet && (
-                            <div css={tw`block md:flex w-full`}>
-                                <ScheduleCheatsheetCards />
+                    {values.trigger === 'cron' && (
+                        <>
+                            <div css={tw`grid grid-cols-2 sm:grid-cols-5 gap-4 mt-6`}>
+                                <Field name={'minute'} label={'Minute'} />
+                                <Field name={'hour'} label={'Hour'} />
+                                <Field name={'dayOfMonth'} label={'Day of month'} />
+                                <Field name={'month'} label={'Month'} />
+                                <Field name={'dayOfWeek'} label={'Day of week'} />
                             </div>
-                        )}
-                    </div>
+                            <p css={tw`text-neutral-400 text-xs mt-2`}>
+                                The schedule system supports the use of Cronjob syntax when defining when tasks should
+                                begin running. Use the fields above to specify when these tasks should begin running.
+                            </p>
+                            <div css={tw`mt-6 bg-neutral-700 border border-neutral-800 shadow-inner p-4 rounded`}>
+                                <Switch
+                                    name={'show_cheatsheet'}
+                                    description={'Show the cron cheatsheet for some examples.'}
+                                    label={'Show Cheatsheet'}
+                                    defaultChecked={showCheatsheet}
+                                    onChange={() => setShowCheetsheet((s) => !s)}
+                                />
+                                {showCheatsheet && (
+                                    <div css={tw`block md:flex w-full`}>
+                                        <ScheduleCheatsheetCards />
+                                    </div>
+                                )}
+                            </div>
+                        </>
+                    )}
+                    {values.trigger === 'webhook' && (
+                        <p css={tw`text-neutral-400 text-xs mt-6`}>
+                            After saving, a unique webhook URL is shown on the schedule page. Anyone with that URL can
+                            run this schedule&apos;s tasks.
+                        </p>
+                    )}
                     <div css={tw`mt-6 bg-neutral-700 border border-neutral-800 shadow-inner p-4 rounded`}>
                         <FormikSwitch
                             name={'onlyWhenOnline'}
@@ -132,7 +157,11 @@ const EditScheduleModal = ({ schedule }: Props) => {
                     <div css={tw`mt-6 bg-neutral-700 border border-neutral-800 shadow-inner p-4 rounded`}>
                         <FormikSwitch
                             name={'enabled'}
-                            description={'This schedule will be executed automatically if enabled.'}
+                            description={
+                                values.trigger === 'webhook'
+                                    ? 'Incoming webhook requests will run this schedule if enabled.'
+                                    : 'This schedule will be executed automatically if enabled.'
+                            }
                             label={'Schedule Enabled'}
                         />
                     </div>

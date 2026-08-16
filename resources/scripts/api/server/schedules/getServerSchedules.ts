@@ -3,6 +3,8 @@ import http from '@/api/http';
 export interface Schedule {
     id: number;
     name: string;
+    trigger: 'cron' | 'webhook';
+    webhookUrl: string | null;
     cron: {
         dayOfWeek: string;
         month: string;
@@ -48,6 +50,8 @@ export const rawDataToServerTask = (data: any): Task => ({
 export const rawDataToServerSchedule = (data: any): Schedule => ({
     id: data.id,
     name: data.name,
+    trigger: data.trigger === 'webhook' ? 'webhook' : 'cron',
+    webhookUrl: data.webhook_url || null,
     cron: {
         dayOfWeek: data.cron.day_of_week,
         month: data.cron.month,

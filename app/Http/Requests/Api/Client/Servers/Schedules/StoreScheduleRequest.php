@@ -18,11 +18,13 @@ class StoreScheduleRequest extends ViewScheduleRequest
 
         return [
             'name' => $rules['name'],
+            'trigger' => 'sometimes|string|in:cron,webhook',
+            'rotate_webhook_token' => 'sometimes|boolean',
             'is_active' => array_merge(['filled'], $rules['is_active']),
-            'minute' => $rules['cron_minute'],
-            'hour' => $rules['cron_hour'],
-            'day_of_month' => $rules['cron_day_of_month'],
-            'day_of_week' => $rules['cron_day_of_week'],
+            'minute' => ['required_unless:trigger,webhook', 'string'],
+            'hour' => ['required_unless:trigger,webhook', 'string'],
+            'day_of_month' => ['required_unless:trigger,webhook', 'string'],
+            'day_of_week' => ['required_unless:trigger,webhook', 'string'],
         ];
     }
 }

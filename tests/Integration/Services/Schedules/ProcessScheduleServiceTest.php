@@ -147,6 +147,26 @@ class ProcessScheduleServiceTest extends IntegrationTestCase
         $this->assertDatabaseHas('tasks', ['id' => $task->id, 'is_queued' => false]);
     }
 
+    public function testWebhookScheduleDoesNotRequireAValidCronExpression()
+    {
+        Bus::fake();
+
+        $server = $this->createServerModel();
+        /** @var Schedule $schedule */
+        $schedule = Schedule::factory()->webhook()->create([
+            'server_id' => $server->id,
+            'cron_minute' => 'hodor',
+            'next_run_at' => null,
+        ]);
+        Task::factory()->create(['schedule_id' => $schedule->id, 'sequence_id' => 1]);
+
+        $this->getService()->handle($schedule);
+
+        $schedule->refresh();
+        $this->assertTrue($schedule->is_processing);
+        $this->assertNull($schedule->next_run_at);
+    }
+
     public static function dispatchNowDataProvider(): array
     {
         return [[true], [false]];

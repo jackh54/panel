@@ -14,6 +14,8 @@ use Pterodactyl\Contracts\Extensions\HashidsInterface;
  * @property int $id
  * @property int $server_id
  * @property string $name
+ * @property string $trigger
+ * @property string|null $webhook_token
  * @property string $cron_day_of_week
  * @property string $cron_month
  * @property string $cron_day_of_month
@@ -41,6 +43,10 @@ class Schedule extends Model
      */
     public const RESOURCE_NAME = 'server_schedule';
 
+    public const TRIGGER_CRON = 'cron';
+
+    public const TRIGGER_WEBHOOK = 'webhook';
+
     /**
      * The table associated with the model.
      */
@@ -57,6 +63,8 @@ class Schedule extends Model
     protected $fillable = [
         'server_id',
         'name',
+        'trigger',
+        'webhook_token',
         'cron_day_of_week',
         'cron_month',
         'cron_day_of_month',
@@ -68,6 +76,8 @@ class Schedule extends Model
         'last_run_at',
         'next_run_at',
     ];
+
+    protected $hidden = ['webhook_token'];
 
     protected $casts = [
         'id' => 'integer',
@@ -81,6 +91,8 @@ class Schedule extends Model
 
     protected $attributes = [
         'name' => null,
+        'trigger' => self::TRIGGER_CRON,
+        'webhook_token' => null,
         'cron_day_of_week' => '*',
         'cron_month' => '*',
         'cron_day_of_month' => '*',
@@ -94,6 +106,8 @@ class Schedule extends Model
     public static array $validationRules = [
         'server_id' => 'required|exists:servers,id',
         'name' => 'required|string|max:191',
+        'trigger' => 'required|string|in:cron,webhook',
+        'webhook_token' => 'nullable|string|size:64|unique:schedules,webhook_token',
         'cron_day_of_week' => 'required|string',
         'cron_month' => 'required|string',
         'cron_day_of_month' => 'required|string',
@@ -109,6 +123,25 @@ class Schedule extends Model
     public function getRouteKeyName(): string
     {
         return $this->getKeyName();
+    }
+
+    public function isWebhook(): bool
+    {
+        return $this->trigger === self::TRIGGER_WEBHOOK;
+    }
+
+    public static function generateWebhookToken(): string
+    {
+        return bin2hex(random_bytes(32));
+    }
+
+    public function webhookUrl(): ?string
+    {
+        if (!$this->isWebhook() || empty($this->webhook_token)) {
+            return null;
+        }
+
+        return url('/hooks/schedule/' . $this->webhook_token);
     }
 
     /**

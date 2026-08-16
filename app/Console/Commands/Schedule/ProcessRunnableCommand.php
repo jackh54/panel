@@ -24,6 +24,7 @@ class ProcessRunnableCommand extends Command
             ->whereRelation('server', fn (Builder $builder) => $builder->whereNull('status'))
             ->where('is_active', true)
             ->where('is_processing', false)
+            ->where('trigger', Schedule::TRIGGER_CRON)
             ->whereRaw('next_run_at <= NOW()')
             ->get();
 

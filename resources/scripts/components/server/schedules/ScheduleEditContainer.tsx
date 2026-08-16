@@ -17,6 +17,8 @@ import isEqual from 'react-fast-compare';
 import { format } from 'date-fns';
 import ScheduleCronRow from '@/components/server/schedules/ScheduleCronRow';
 import RunScheduleButton from '@/components/server/schedules/RunScheduleButton';
+import CopyOnClick from '@/components/elements/CopyOnClick';
+import createOrUpdateSchedule from '@/api/server/schedules/createOrUpdateSchedule';
 
 interface Params {
     id: string;
@@ -50,6 +52,7 @@ export default () => {
     const { clearFlashes, clearAndAddHttpError } = useFlash();
     const [isLoading, setIsLoading] = useState(true);
     const [showEditModal, setShowEditModal] = useState(false);
+    const [isRotating, setIsRotating] = useState(false);
 
     const schedule = ServerContext.useStoreState(
         (st) => st.schedules.data.find((s) => s.id === Number(scheduleId)),
@@ -77,6 +80,30 @@ export default () => {
         setShowEditModal((s) => !s);
     }, []);
 
+    const rotateWebhookUrl = () => {
+        if (!schedule) {
+            return;
+        }
+
+        setIsRotating(true);
+        clearFlashes('schedules');
+        createOrUpdateSchedule(uuid, {
+            id: schedule.id,
+            name: schedule.name,
+            trigger: 'webhook',
+            cron: schedule.cron,
+            onlyWhenOnline: schedule.onlyWhenOnline,
+            isActive: schedule.isActive,
+            rotateWebhookToken: true,
+        })
+            .then((updated) => appendSchedule(updated))
+            .catch((error) => {
+                console.error(error);
+                clearAndAddHttpError({ error, key: 'schedules' });
+            })
+            .then(() => setIsRotating(false));
+    };
+
     return (
         <PageContentBlock title={'Schedules'}>
             <FlashMessageRender byKey={'schedules'} css={tw`mb-4`} />
@@ -84,7 +111,9 @@ export default () => {
                 <Spinner size={'large'} centered />
             ) : (
                 <>
-                    <ScheduleCronRow cron={schedule.cron} css={tw`sm:hidden bg-neutral-700 rounded mb-4 p-3`} />
+                    {schedule.trigger === 'cron' && (
+                        <ScheduleCronRow cron={schedule.cron} css={tw`sm:hidden bg-neutral-700 rounded mb-4 p-3`} />
+                    )}
                     <div css={tw`rounded shadow`}>
                         <div
                             css={tw`sm:flex items-center bg-neutral-900 p-3 sm:p-6 border-b-4 border-neutral-600 rounded-t`}
@@ -110,14 +139,16 @@ export default () => {
                                     ) : (
                                         <span css={tw`text-neutral-300`}>n/a</span>
                                     )}
-                                    <span css={tw`ml-4 pl-4 border-l-4 border-neutral-600 py-px`}>
-                                        Next run at:&nbsp;
-                                        {schedule.nextRunAt ? (
-                                            format(schedule.nextRunAt, "MMM do 'at' h:mma")
-                                        ) : (
-                                            <span css={tw`text-neutral-300`}>n/a</span>
-                                        )}
-                                    </span>
+                                    {schedule.trigger === 'cron' && (
+                                        <span css={tw`ml-4 pl-4 border-l-4 border-neutral-600 py-px`}>
+                                            Next run at:&nbsp;
+                                            {schedule.nextRunAt ? (
+                                                format(schedule.nextRunAt, "MMM do 'at' h:mma")
+                                            ) : (
+                                                <span css={tw`text-neutral-300`}>n/a</span>
+                                            )}
+                                        </span>
+                                    )}
                                 </p>
                             </div>
                             <div css={tw`flex sm:block mt-3 sm:mt-0`}>
@@ -129,13 +160,36 @@ export default () => {
                                 </Can>
                             </div>
                         </div>
-                        <div css={tw`hidden sm:grid grid-cols-5 md:grid-cols-5 gap-4 mb-4 mt-4`}>
-                            <CronBox title={'Minute'} value={schedule.cron.minute} />
-                            <CronBox title={'Hour'} value={schedule.cron.hour} />
-                            <CronBox title={'Day (Month)'} value={schedule.cron.dayOfMonth} />
-                            <CronBox title={'Month'} value={schedule.cron.month} />
-                            <CronBox title={'Day (Week)'} value={schedule.cron.dayOfWeek} />
-                        </div>
+                        {schedule.trigger === 'webhook' ? (
+                            <div css={tw`bg-neutral-700 rounded p-3 sm:p-4 mb-4 mt-4`}>
+                                <p css={tw`text-neutral-300 text-sm mb-2`}>Webhook URL</p>
+                                <CopyOnClick text={schedule.webhookUrl}>
+                                    <p css={tw`font-mono text-sm text-neutral-100 break-all`}>
+                                        {schedule.webhookUrl || 'Unavailable'}
+                                    </p>
+                                </CopyOnClick>
+                                <p css={tw`text-neutral-400 text-xs mt-2`}>
+                                    GET or POST this URL to run the schedule. Treat it like a password.
+                                </p>
+                                <Can action={'schedule.update'}>
+                                    <Button.Text
+                                        className={'mt-3'}
+                                        disabled={isRotating}
+                                        onClick={rotateWebhookUrl}
+                                    >
+                                        {isRotating ? 'Rotating...' : 'Rotate URL'}
+                                    </Button.Text>
+                                </Can>
+                            </div>
+                        ) : (
+                            <div css={tw`hidden sm:grid grid-cols-5 md:grid-cols-5 gap-4 mb-4 mt-4`}>
+                                <CronBox title={'Minute'} value={schedule.cron.minute} />
+                                <CronBox title={'Hour'} value={schedule.cron.hour} />
+                                <CronBox title={'Day (Month)'} value={schedule.cron.dayOfMonth} />
+                                <CronBox title={'Month'} value={schedule.cron.month} />
+                                <CronBox title={'Day (Week)'} value={schedule.cron.dayOfWeek} />
+                            </div>
+                        )}
                         <div css={tw`bg-neutral-700 rounded-b`}>
                             {schedule.tasks.length > 0
                                 ? schedule.tasks

@@ -46,6 +46,28 @@ class CreateServerScheduleTest extends ClientApiIntegrationTestCase
         $response->assertJsonCount(0, 'attributes.relationships.tasks.data');
     }
 
+    public function testWebhookScheduleCanBeCreatedWithoutCronFields()
+    {
+        [$user, $server] = $this->generateTestAccount();
+
+        $response = $this->actingAs($user)->postJson("/api/client/servers/$server->uuid/schedules", [
+            'name' => 'Webhook Schedule',
+            'is_active' => true,
+            'trigger' => 'webhook',
+        ]);
+
+        $response->assertOk();
+
+        /** @var Schedule $schedule */
+        $schedule = Schedule::query()->findOrFail($response->json('attributes.id'));
+        $this->assertSame(Schedule::TRIGGER_WEBHOOK, $schedule->trigger);
+        $this->assertNotNull($schedule->webhook_token);
+        $this->assertSame(64, strlen($schedule->webhook_token));
+        $this->assertNull($schedule->next_run_at);
+        $this->assertSame($schedule->webhookUrl(), $response->json('attributes.webhook_url'));
+        $this->assertStringContainsString($schedule->webhook_token, $response->json('attributes.webhook_url'));
+    }
+
     /**
      * Test that the validation rules for scheduling work as expected.
      */

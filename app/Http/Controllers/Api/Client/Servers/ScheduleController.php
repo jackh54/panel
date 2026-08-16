@@ -53,18 +53,10 @@ class ScheduleController extends ClientApiController
     public function store(StoreScheduleRequest $request, Server $server): array
     {
         /** @var Schedule $model */
-        $model = $this->repository->create([
-            'server_id' => $server->id,
-            'name' => $request->input('name'),
-            'cron_day_of_week' => $request->input('day_of_week'),
-            'cron_month' => $request->input('month'),
-            'cron_day_of_month' => $request->input('day_of_month'),
-            'cron_hour' => $request->input('hour'),
-            'cron_minute' => $request->input('minute'),
-            'is_active' => (bool) $request->input('is_active'),
-            'only_when_online' => (bool) $request->input('only_when_online'),
-            'next_run_at' => $this->getNextRunAt($request),
-        ]);
+        $model = $this->repository->create(array_merge(
+            ['server_id' => $server->id],
+            $this->getDataFromRequest($request)
+        ));
 
         Activity::event('server:schedule.create')
             ->subject($model)
@@ -103,17 +95,7 @@ class ScheduleController extends ClientApiController
     {
         $active = (bool) $request->input('is_active');
 
-        $data = [
-            'name' => $request->input('name'),
-            'cron_day_of_week' => $request->input('day_of_week'),
-            'cron_month' => $request->input('month'),
-            'cron_day_of_month' => $request->input('day_of_month'),
-            'cron_hour' => $request->input('hour'),
-            'cron_minute' => $request->input('minute'),
-            'is_active' => $active,
-            'only_when_online' => (bool) $request->input('only_when_online'),
-            'next_run_at' => $this->getNextRunAt($request),
-        ];
+        $data = $this->getDataFromRequest($request, $schedule);
 
         // Toggle the processing state of the scheduled task when it is enabled or disabled so that an
         // invalid state can be reset without manual database intervention.
@@ -166,6 +148,45 @@ class ScheduleController extends ClientApiController
         Activity::event('server:schedule.delete')->subject($schedule)->property('name', $schedule->name)->log();
 
         return new JsonResponse([], Response::HTTP_NO_CONTENT);
+    }
+
+    /**
+     * Build the persistable schedule attributes from the request.
+     *
+     * @throws DisplayException
+     */
+    protected function getDataFromRequest(Request $request, ?Schedule $existing = null): array
+    {
+        $trigger = $request->input('trigger', $existing?->trigger ?? Schedule::TRIGGER_CRON);
+        $isWebhook = $trigger === Schedule::TRIGGER_WEBHOOK;
+
+        $data = [
+            'name' => $request->input('name'),
+            'cron_day_of_week' => $isWebhook ? ($request->input('day_of_week') ?? '*') : $request->input('day_of_week'),
+            'cron_month' => $isWebhook ? ($request->input('month') ?? '*') : $request->input('month'),
+            'cron_day_of_month' => $isWebhook ? ($request->input('day_of_month') ?? '*') : $request->input('day_of_month'),
+            'cron_hour' => $isWebhook ? ($request->input('hour') ?? '*') : $request->input('hour'),
+            'cron_minute' => $isWebhook ? ($request->input('minute') ?? '*') : $request->input('minute'),
+            'is_active' => (bool) $request->input('is_active'),
+            'only_when_online' => (bool) $request->input('only_when_online'),
+            'trigger' => $trigger,
+            'next_run_at' => $isWebhook ? null : $this->getNextRunAt($request),
+        ];
+
+        if ($isWebhook) {
+            $needsToken = is_null($existing)
+                || $existing->trigger !== Schedule::TRIGGER_WEBHOOK
+                || empty($existing->webhook_token)
+                || $request->boolean('rotate_webhook_token');
+
+            if ($needsToken) {
+                $data['webhook_token'] = Schedule::generateWebhookToken();
+            }
+        } else {
+            $data['webhook_token'] = null;
+        }
+
+        return $data;
     }
 
     /**

@@ -23,4 +23,13 @@ class ScheduleFactory extends Factory
             'name' => $this->faker->firstName(),
         ];
     }
+
+    public function webhook(): self
+    {
+        return $this->state(fn () => [
+            'trigger' => Schedule::TRIGGER_WEBHOOK,
+            'webhook_token' => Schedule::generateWebhookToken(),
+            'next_run_at' => null,
+        ]);
+    }
 }
